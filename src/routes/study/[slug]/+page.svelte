@@ -9,7 +9,7 @@
 </script>
 
 <svelte:head>
-	<title>{data.study.title} — Brandopsy</title>
+	<title>{data.study.title} — ITopsy</title>
 </svelte:head>
 
 {#key data.study.id}

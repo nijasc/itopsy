@@ -6,7 +6,7 @@
 </script>
 
 <svelte:head>
-	<title>Verify Credentials — Brandopsy</title>
+	<title>Verify Credentials — ITopsy</title>
 </svelte:head>
 
 <main class="mx-auto flex min-h-[80vh] max-w-sm flex-col justify-center gap-6 px-4">

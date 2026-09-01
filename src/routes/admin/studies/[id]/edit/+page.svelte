@@ -12,7 +12,7 @@
 </script>
 
 <svelte:head>
-	<title>Re-examine {data.study.title} — Brandopsy admin</title>
+	<title>Re-examine {data.study.title} — ITopsy admin</title>
 </svelte:head>
 
 <main class="flex h-screen flex-col gap-4 p-4">

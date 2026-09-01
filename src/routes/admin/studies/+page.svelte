@@ -8,7 +8,7 @@
 </script>
 
 <svelte:head>
-	<title>The Editorial Desk — Brandopsy</title>
+	<title>The Editorial Desk — ITopsy</title>
 </svelte:head>
 
 <main class="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8">

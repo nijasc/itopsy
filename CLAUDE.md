@@ -1,4 +1,4 @@
-# Brandopsy
+# ITopsy
 
 A SvelteKit web app hosting a filterable gallery of satirical "case study"
 documents. Each case study is a self-contained, uniquely styled HTML

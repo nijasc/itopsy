@@ -4,7 +4,7 @@
 </script>
 
 <svelte:head>
-	<title>{page.status} — Brandopsy</title>
+	<title>{page.status} — ITopsy</title>
 </svelte:head>
 
 <main

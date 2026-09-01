@@ -1,6 +1,6 @@
 <script lang="ts">
 	import '../app.css';
-	import favicon from '$lib/assets/favicon.svg';
+	import icon from '$lib/assets/itopsy-icon.png';
 	import { resolve } from '$app/paths';
 	import { AppBar, Toast } from '@skeletonlabs/skeleton-svelte';
 	import { toaster } from '$lib/toaster';
@@ -12,13 +12,16 @@
 </script>
 
 <svelte:head>
-	<link rel="icon" href={favicon} />
+	<link rel="icon" type="image/png" href={icon} />
 </svelte:head>
 
 <AppBar class="border-surface-200-800 border-b">
 	<AppBar.Toolbar class="mx-auto max-w-6xl grid-cols-[auto_1fr_auto] px-4">
 		<AppBar.Lead>
-			<a href={resolve('/')} class="text-xl font-bold tracking-tight">🗞️ Brandopsy</a>
+			<a href={resolve('/')} class="flex items-center gap-2 text-xl font-bold tracking-tight">
+				<img src={icon} alt="" class="size-6" />
+				ITopsy
+			</a>
 		</AppBar.Lead>
 		<AppBar.Headline></AppBar.Headline>
 		<AppBar.Trail class="items-center gap-3">

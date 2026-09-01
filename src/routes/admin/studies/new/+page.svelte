@@ -10,7 +10,7 @@
 </script>
 
 <svelte:head>
-	<title>Open a New Case — Brandopsy admin</title>
+	<title>Open a New Case — ITopsy admin</title>
 </svelte:head>
 
 <main class="flex h-screen flex-col gap-4 p-4">

@@ -13,7 +13,7 @@
 </script>
 
 <svelte:head>
-	<title>Personnel Files — Brandopsy admin</title>
+	<title>Personnel Files — ITopsy admin</title>
 </svelte:head>
 
 <main class="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-8">

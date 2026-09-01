@@ -31,7 +31,7 @@
 </script>
 
 <svelte:head>
-	<title>Your Dossier — Brandopsy</title>
+	<title>Your Dossier — ITopsy</title>
 </svelte:head>
 
 <main class="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-8">
