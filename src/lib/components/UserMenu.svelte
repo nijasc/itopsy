@@ -1,7 +1,14 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { Avatar, Popover, Portal } from '@skeletonlabs/skeleton-svelte';
-	import { Icon, userIcon, layoutDashboardIcon, usersIcon, logOutIcon } from '$lib/icons';
+	import {
+		Icon,
+		userIcon,
+		layoutDashboardIcon,
+		usersIcon,
+		logOutIcon,
+		fileTextIcon
+	} from '$lib/icons';
 
 	let {
 		user
@@ -53,6 +60,15 @@
 							<Icon nodes={layoutDashboardIcon} class="size-4" /> Editorial Desk
 						</a>
 					{/if}
+					{#if user.role === 'admin' || user.role === 'owner'}
+						<a
+							href={resolve('/admin/audit')}
+							onclick={() => (open = false)}
+							class="hover:preset-tonal flex items-center gap-2 rounded px-2 py-1.5 text-sm"
+						>
+							<Icon nodes={fileTextIcon} class="size-4" /> Admin Audit Log
+						</a>
+					{/if}
 					{#if user.role === 'owner'}
 						<a
 							href={resolve('/admin/users')}
@@ -60,6 +76,13 @@
 							class="hover:preset-tonal flex items-center gap-2 rounded px-2 py-1.5 text-sm"
 						>
 							<Icon nodes={usersIcon} class="size-4" /> Personnel Files
+						</a>
+						<a
+							href={resolve('/admin/owner-audit')}
+							onclick={() => (open = false)}
+							class="hover:preset-tonal flex items-center gap-2 rounded px-2 py-1.5 text-sm"
+						>
+							<Icon nodes={fileTextIcon} class="size-4" /> Owner Audit Log
 						</a>
 					{/if}
 					<form method="POST" action={resolve('/logout')} class="contents">

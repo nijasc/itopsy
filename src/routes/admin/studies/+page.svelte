@@ -50,7 +50,11 @@
 								{study.title}
 							</a>
 						</td>
-						<td class="text-surface-600-400 text-xs">{study.authorEmail}</td>
+						<td class="text-xs">
+							<a href={resolve('/admin/users/[id]', { id: study.authorId })} class="anchor">
+								{study.authorEmail}
+							</a>
+						</td>
 						<td>
 							<span
 								class="badge {study.status === 'published'

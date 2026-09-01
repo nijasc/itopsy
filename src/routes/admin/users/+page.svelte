@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { resolve } from '$app/paths';
 	import { toaster } from '$lib/toaster';
 	import type { ActionData, PageData } from './$types';
 
@@ -40,7 +41,9 @@
 			<tbody class="[&>tr]:hover:preset-tonal">
 				{#each data.users as u (u.id)}
 					<tr>
-						<td>{u.email}</td>
+						<td>
+							<a href={resolve('/admin/users/[id]', { id: u.id })} class="anchor">{u.email}</a>
+						</td>
 						<td>{roleTitle[u.role]}</td>
 						<td>
 							{#if u.role === 'owner'}
