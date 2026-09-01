@@ -1,53 +1,89 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { toaster } from '$lib/toaster';
 	import type { ActionData, PageData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
+
+	const roleTitle: Record<string, string> = {
+		owner: 'Editor-in-Chief',
+		admin: 'Staff Investigator',
+		user: 'Registered Whistleblower'
+	};
 </script>
 
 <svelte:head>
-	<title>Manage users — Brandopsy admin</title>
+	<title>Personnel Files — Brandopsy admin</title>
 </svelte:head>
 
 <main class="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-8">
-	<h1 class="text-2xl font-semibold">Users</h1>
+	<div>
+		<h1 class="text-2xl font-semibold">Personnel Files</h1>
+		<p class="text-surface-600-400 text-sm">
+			Grant or revoke investigative clearance. Choose wisely; there is no HR department.
+		</p>
+	</div>
 
 	{#if form?.error}
-		<p class="text-sm text-red-600" role="alert">{form.error}</p>
+		<p class="text-error-500 text-sm" role="alert">{form.error}</p>
 	{/if}
 
-	<div class="overflow-x-auto">
-		<table class="w-full min-w-[480px] text-left text-sm">
-			<thead class="border-b border-neutral-200 text-neutral-500">
+	<div class="card bg-surface-100-900 table-wrap p-4">
+		<table class="table caption-bottom">
+			<thead>
 				<tr>
-					<th class="py-2 pr-4">Email</th>
-					<th class="py-2 pr-4">Role</th>
-					<th class="py-2 pr-4">Actions</th>
+					<th>Email</th>
+					<th>Clearance</th>
+					<th>Actions</th>
 				</tr>
 			</thead>
-			<tbody>
+			<tbody class="[&>tr]:hover:preset-tonal">
 				{#each data.users as u (u.id)}
-					<tr class="border-b border-neutral-100">
-						<td class="py-2 pr-4">{u.email}</td>
-						<td class="py-2 pr-4 capitalize">{u.role}</td>
-						<td class="py-2 pr-4">
+					<tr>
+						<td>{u.email}</td>
+						<td>{roleTitle[u.role]}</td>
+						<td>
 							{#if u.role === 'owner'}
-								<span class="text-neutral-400">&mdash;</span>
+								<span class="text-surface-500">&mdash;</span>
 							{:else if u.role === 'admin'}
-								<form method="POST" action="?/setRole" use:enhance>
+								<form
+									method="POST"
+									action="?/setRole"
+									use:enhance={() => {
+										return async ({ update }) => {
+											await update();
+											toaster.warning({
+												title: 'Clearance revoked',
+												description: `${u.email} has been demoted to Registered Whistleblower.`
+											});
+										};
+									}}
+								>
 									<input type="hidden" name="id" value={u.id} />
 									<input type="hidden" name="role" value="user" />
-									<button type="submit" class="text-neutral-600 hover:underline"
-										>Demote to user</button
-									>
+									<button type="submit" class="text-surface-600-400 hover:underline">
+										Revoke clearance
+									</button>
 								</form>
 							{:else}
-								<form method="POST" action="?/setRole" use:enhance>
+								<form
+									method="POST"
+									action="?/setRole"
+									use:enhance={() => {
+										return async ({ update }) => {
+											await update();
+											toaster.success({
+												title: 'Clearance granted',
+												description: `${u.email} is now a Staff Investigator.`
+											});
+										};
+									}}
+								>
 									<input type="hidden" name="id" value={u.id} />
 									<input type="hidden" name="role" value="admin" />
-									<button type="submit" class="text-neutral-600 hover:underline"
-										>Promote to admin</button
-									>
+									<button type="submit" class="text-surface-600-400 hover:underline">
+										Grant clearance
+									</button>
 								</form>
 							{/if}
 						</td>

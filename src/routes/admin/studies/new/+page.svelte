@@ -10,66 +10,69 @@
 </script>
 
 <svelte:head>
-	<title>New study — Brandopsy admin</title>
+	<title>Open a New Case — Brandopsy admin</title>
 </svelte:head>
 
 <main class="flex h-screen flex-col gap-4 p-4">
-	<h1 class="text-xl font-semibold">New study</h1>
+	<div>
+		<h1 class="text-xl font-semibold">Open a New Case</h1>
+		<p class="text-surface-600-400 text-sm">
+			State your findings. Cite no sources. Feel free to editorialize.
+		</p>
+	</div>
 
 	<form method="POST" use:enhance class="flex flex-1 flex-col gap-4 overflow-hidden">
 		<div class="grid grid-cols-2 gap-3 md:grid-cols-4">
-			<label class="flex flex-col gap-1 text-sm">
-				<span>Title</span>
-				<input name="title" required class="rounded border border-neutral-300 px-2 py-1" />
+			<label class="label text-sm">
+				<span class="label-text">Title</span>
+				<input name="title" required class="input" />
 			</label>
-			<label class="flex flex-col gap-1 text-sm">
-				<span>Subject</span>
-				<input name="subject" required class="rounded border border-neutral-300 px-2 py-1" />
+			<label class="label text-sm">
+				<span class="label-text">Subject</span>
+				<input name="subject" required class="input" />
 			</label>
-			<label class="flex flex-col gap-1 text-sm">
-				<span>Severity</span>
-				<select name="severity" class="rounded border border-neutral-300 px-2 py-1">
+			<label class="label text-sm">
+				<span class="label-text">Severity of Offense</span>
+				<select name="severity" class="select">
 					<option value="mild">Mild</option>
 					<option value="medium" selected>Medium</option>
 					<option value="savage">Savage</option>
 				</select>
 			</label>
-			<label class="flex flex-col gap-1 text-sm">
-				<span>Status</span>
-				<select name="status" class="rounded border border-neutral-300 px-2 py-1">
-					<option value="draft" selected>Draft</option>
+			<label class="label text-sm">
+				<span class="label-text">Status</span>
+				<select name="status" class="select">
+					<option value="draft" selected>Sealed (draft)</option>
 					<option value="published">Published</option>
 				</select>
 			</label>
-			<label class="col-span-2 flex flex-col gap-1 text-sm md:col-span-2">
-				<span>Tags (comma-separated)</span>
-				<input name="tags" class="rounded border border-neutral-300 px-2 py-1" />
+			<label class="label col-span-2 text-sm md:col-span-2">
+				<span class="label-text">Tags (comma-separated)</span>
+				<input name="tags" class="input" />
 			</label>
-			<label class="col-span-2 flex flex-col gap-1 text-sm md:col-span-2">
-				<span>Dek</span>
-				<input name="dek" required class="rounded border border-neutral-300 px-2 py-1" />
+			<label class="label col-span-2 text-sm md:col-span-2">
+				<span class="label-text">Dek</span>
+				<input name="dek" required class="input" />
 			</label>
 		</div>
 
 		{#if form?.error}
-			<p class="text-sm text-red-600" role="alert">{form.error}</p>
+			<p class="text-error-500 text-sm" role="alert">{form.error}</p>
 		{/if}
 
 		<input type="hidden" name="htmlContent" value={htmlContent} />
 
 		<div class="grid flex-1 grid-cols-1 gap-4 overflow-auto md:grid-cols-2 md:overflow-hidden">
-			<div class="overflow-hidden rounded border border-neutral-300">
+			<div class="border-surface-200-800 overflow-hidden rounded-lg border">
 				<HtmlEditor bind:value={htmlContent} />
 			</div>
-			<div class="overflow-hidden rounded border border-neutral-300">
+			<div class="border-surface-200-800 overflow-hidden rounded-lg border">
 				<SandboxedStudy html={htmlContent} />
 			</div>
 		</div>
 
 		<div>
-			<button type="submit" class="rounded bg-neutral-900 px-4 py-2 text-sm text-white">
-				Create study
-			</button>
+			<button type="submit" class="btn preset-filled-primary-500">File the Case</button>
 		</div>
 	</form>
 </main>

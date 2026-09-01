@@ -12,86 +12,67 @@
 </script>
 
 <svelte:head>
-	<title>Edit {data.study.title} — Brandopsy admin</title>
+	<title>Re-examine {data.study.title} — Brandopsy admin</title>
 </svelte:head>
 
 <main class="flex h-screen flex-col gap-4 p-4">
-	<h1 class="text-xl font-semibold">Edit study</h1>
+	<div>
+		<h1 class="text-xl font-semibold">Re-examine the Case</h1>
+		<p class="text-surface-600-400 text-sm">New evidence may be submitted at any time.</p>
+	</div>
 
 	<form method="POST" use:enhance class="flex flex-1 flex-col gap-4 overflow-hidden">
 		<div class="grid grid-cols-2 gap-3 md:grid-cols-4">
-			<label class="flex flex-col gap-1 text-sm">
-				<span>Title</span>
-				<input
-					name="title"
-					required
-					value={data.study.title}
-					class="rounded border border-neutral-300 px-2 py-1"
-				/>
+			<label class="label text-sm">
+				<span class="label-text">Title</span>
+				<input name="title" required value={data.study.title} class="input" />
 			</label>
-			<label class="flex flex-col gap-1 text-sm">
-				<span>Subject</span>
-				<input
-					name="subject"
-					required
-					value={data.study.subject}
-					class="rounded border border-neutral-300 px-2 py-1"
-				/>
+			<label class="label text-sm">
+				<span class="label-text">Subject</span>
+				<input name="subject" required value={data.study.subject} class="input" />
 			</label>
-			<label class="flex flex-col gap-1 text-sm">
-				<span>Severity</span>
-				<select name="severity" class="rounded border border-neutral-300 px-2 py-1">
+			<label class="label text-sm">
+				<span class="label-text">Severity of Offense</span>
+				<select name="severity" class="select">
 					{#each ['mild', 'medium', 'savage'] as s (s)}
 						<option value={s} selected={data.study.severity === s}>{s}</option>
 					{/each}
 				</select>
 			</label>
-			<label class="flex flex-col gap-1 text-sm">
-				<span>Status</span>
-				<select name="status" class="rounded border border-neutral-300 px-2 py-1">
-					{#each ['draft', 'published'] as s (s)}
-						<option value={s} selected={data.study.status === s}>{s}</option>
-					{/each}
+			<label class="label text-sm">
+				<span class="label-text">Status</span>
+				<select name="status" class="select">
+					<option value="draft" selected={data.study.status === 'draft'}>Sealed (draft)</option>
+					<option value="published" selected={data.study.status === 'published'}>Published</option>
 				</select>
 			</label>
-			<label class="col-span-2 flex flex-col gap-1 text-sm md:col-span-2">
-				<span>Tags (comma-separated)</span>
-				<input
-					name="tags"
-					value={data.study.tags.join(', ')}
-					class="rounded border border-neutral-300 px-2 py-1"
-				/>
+			<label class="label col-span-2 text-sm md:col-span-2">
+				<span class="label-text">Tags (comma-separated)</span>
+				<input name="tags" value={data.study.tags.join(', ')} class="input" />
 			</label>
-			<label class="col-span-2 flex flex-col gap-1 text-sm md:col-span-2">
-				<span>Dek</span>
-				<input
-					name="dek"
-					required
-					value={data.study.dek}
-					class="rounded border border-neutral-300 px-2 py-1"
-				/>
+			<label class="label col-span-2 text-sm md:col-span-2">
+				<span class="label-text">Dek</span>
+				<input name="dek" required value={data.study.dek} class="input" />
 			</label>
 		</div>
 
 		{#if form?.error}
-			<p class="text-sm text-red-600" role="alert">{form.error}</p>
+			<p class="text-error-500 text-sm" role="alert">{form.error}</p>
 		{/if}
 
 		<input type="hidden" name="htmlContent" value={htmlContent} />
 
 		<div class="grid flex-1 grid-cols-1 gap-4 overflow-auto md:grid-cols-2 md:overflow-hidden">
-			<div class="overflow-hidden rounded border border-neutral-300">
+			<div class="border-surface-200-800 overflow-hidden rounded-lg border">
 				<HtmlEditor bind:value={htmlContent} />
 			</div>
-			<div class="overflow-hidden rounded border border-neutral-300">
+			<div class="border-surface-200-800 overflow-hidden rounded-lg border">
 				<SandboxedStudy html={htmlContent} />
 			</div>
 		</div>
 
 		<div>
-			<button type="submit" class="rounded bg-neutral-900 px-4 py-2 text-sm text-white">
-				Save changes
-			</button>
+			<button type="submit" class="btn preset-filled-primary-500">Amend the Record</button>
 		</div>
 	</form>
 </main>

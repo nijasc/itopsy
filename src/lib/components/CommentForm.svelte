@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { toaster } from '$lib/toaster';
 
 	let {
 		action = '?/comment',
@@ -23,7 +24,13 @@
 		return async ({ update, result }) => {
 			submitting = false;
 			await update();
-			if (result.type === 'success') onSubmitted?.();
+			if (result.type === 'success') {
+				toaster.success({
+					title: 'Testimony entered into the record',
+					description: parentId ? 'Your rebuttal has been filed.' : 'Thank you for your candor.'
+				});
+				onSubmitted?.();
+			}
 		};
 	}}
 >

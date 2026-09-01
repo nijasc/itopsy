@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
+	import { toaster } from '$lib/toaster';
 	import CommentForm from './CommentForm.svelte';
 	import { COMMENT_EDIT_WINDOW_MS } from '$lib/schemas/comment';
 	import type { CommentWithReplies, CommentRow } from '$lib/server/queries/comments';
@@ -76,7 +77,19 @@
 					<button onclick={() => (editingId = comment.id)}>Amend</button>
 				{/if}
 				{#if currentUser && (currentUser.id === comment.authorId || canModerate())}
-					<form method="POST" action="?/deleteComment" use:enhance>
+					<form
+						method="POST"
+						action="?/deleteComment"
+						use:enhance={() => {
+							return async ({ update }) => {
+								await update();
+								toaster.warning({
+									title: 'Testimony retracted',
+									description: 'Struck from the record, but not from memory.'
+								});
+							};
+						}}
+					>
 						<input type="hidden" name="commentId" value={comment.id} />
 						<button type="submit">Retract</button>
 					</form>
