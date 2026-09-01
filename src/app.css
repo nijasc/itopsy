@@ -1,1 +1,7 @@
 @import 'tailwindcss';
+
+body {
+	background-color: light-dark(#ffffff, #0a0a0a);
+	color: light-dark(#171717, #e5e5e5);
+	color-scheme: light dark;
+}

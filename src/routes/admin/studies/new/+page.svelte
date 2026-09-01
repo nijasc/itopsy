@@ -57,7 +57,7 @@
 
 		<input type="hidden" name="htmlContent" value={htmlContent} />
 
-		<div class="grid flex-1 grid-cols-2 gap-4 overflow-hidden">
+		<div class="grid flex-1 grid-cols-1 gap-4 overflow-auto md:grid-cols-2 md:overflow-hidden">
 			<div class="overflow-hidden rounded border border-neutral-300">
 				<HtmlEditor bind:value={htmlContent} />
 			</div>

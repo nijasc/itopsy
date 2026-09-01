@@ -84,6 +84,7 @@
 				<button
 					type="button"
 					onclick={() => toggleSeverity(severity)}
+					aria-pressed={filters.severity.includes(severity)}
 					class="rounded-full border px-3 py-1 text-xs capitalize"
 					class:bg-neutral-900={filters.severity.includes(severity)}
 					class:text-white={filters.severity.includes(severity)}
@@ -112,6 +113,7 @@
 				<button
 					type="button"
 					onclick={() => toggleTag(tag)}
+					aria-pressed={filters.tags.includes(tag)}
 					class="rounded-full border px-3 py-1 text-xs"
 					class:bg-neutral-900={filters.tags.includes(tag)}
 					class:text-white={filters.tags.includes(tag)}
