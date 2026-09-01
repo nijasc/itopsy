@@ -32,6 +32,17 @@
 		{ value: 'all', label: 'Alle / All' }
 	];
 
+	const TAG_PREVIEW_COUNT = 10;
+	let tagsExpanded = $state(false);
+	// Always keep a currently-active tag visible, even past the preview cutoff,
+	// so a user can still see and untoggle it without expanding the whole list.
+	const visibleTags = $derived(
+		tagsExpanded
+			? facets.tags
+			: facets.tags.filter((t, i) => i < TAG_PREVIEW_COUNT || filters.tags.includes(t.tag))
+	);
+	const hiddenTagCount = $derived(Math.max(0, facets.tags.length - visibleTags.length));
+
 	function countFor(language: string) {
 		if (language === 'all') return facets.languages.reduce((sum, l) => sum + l.count, 0);
 		return facets.languages.find((l) => l.language === language)?.count ?? 0;
@@ -146,8 +157,8 @@
 	</div>
 
 	{#if facets.tags.length > 0}
-		<div class="flex flex-wrap gap-2">
-			{#each facets.tags as { tag, count } (tag)}
+		<div class="flex flex-wrap items-center gap-2">
+			{#each visibleTags as { tag, count } (tag)}
 				<button
 					type="button"
 					onclick={() => toggleTag(tag)}
@@ -159,6 +170,23 @@
 					{tag} <span class="opacity-60">({count})</span>
 				</button>
 			{/each}
+			{#if hiddenTagCount > 0}
+				<button
+					type="button"
+					onclick={() => (tagsExpanded = true)}
+					class="chip preset-tonal-secondary text-xs"
+				>
+					+{hiddenTagCount} more
+				</button>
+			{:else if tagsExpanded && facets.tags.length > TAG_PREVIEW_COUNT}
+				<button
+					type="button"
+					onclick={() => (tagsExpanded = false)}
+					class="chip preset-tonal-secondary text-xs"
+				>
+					Show fewer
+				</button>
+			{/if}
 		</div>
 	{/if}
 </div>
