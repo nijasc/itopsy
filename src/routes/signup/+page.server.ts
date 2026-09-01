@@ -1,6 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { Scrypt, generateIdFromEntropySize } from 'lucia';
-import { PostgresError } from 'postgres';
+import { NeonDbError } from '@neondatabase/serverless';
 import type { Actions, PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
 import { users } from '$lib/server/db/schema';
@@ -33,15 +33,17 @@ export const actions: Actions = {
 		try {
 			await db.insert(users).values({ id: userId, email, passwordHash, role: 'owner' });
 		} catch (err) {
-			if (err instanceof PostgresError && err.code === '23505') {
-				if (err.constraint_name === 'users_email_idx') {
+			const cause = err instanceof Error ? (err.cause ?? err) : err;
+			if (cause instanceof NeonDbError && cause.code === '23505') {
+				if (cause.constraint === 'users_email_idx') {
 					return fail(400, { email, error: 'An account with that email already exists.' });
 				}
 				// one_owner_idx (or any other unique violation on this insert): fall back to user
 				try {
 					await db.insert(users).values({ id: userId, email, passwordHash, role: 'user' });
 				} catch (retryErr) {
-					if (retryErr instanceof PostgresError && retryErr.code === '23505') {
+					const retryCause = retryErr instanceof Error ? (retryErr.cause ?? retryErr) : retryErr;
+					if (retryCause instanceof NeonDbError && retryCause.code === '23505') {
 						return fail(400, { email, error: 'An account with that email already exists.' });
 					}
 					throw retryErr;
