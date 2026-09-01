@@ -1,0 +1,144 @@
+import { and, desc, eq, sql, type SQL } from 'drizzle-orm';
+import { db } from '$lib/server/db';
+import { studies, comments } from '$lib/server/db/schema';
+
+export const SORTS = ['newest', 'most-liked', 'most-discussed'] as const;
+export type Sort = (typeof SORTS)[number];
+
+export const PAGE_SIZE = 24;
+
+export interface GalleryFilters {
+	tags: string[];
+	severity: string[];
+	search: string;
+	sort: Sort;
+	/** Opaque cursor from the previous page's `nextCursor`. */
+	cursor: string | null;
+}
+
+interface Cursor {
+	/** createdAt (ms since epoch) for `newest`, likeCount for `most-liked`, commentCount for `most-discussed`. */
+	value: number;
+	id: number;
+}
+
+function encodeCursor(cursor: Cursor): string {
+	return Buffer.from(JSON.stringify(cursor)).toString('base64url');
+}
+
+function decodeCursor(raw: string | null): Cursor | null {
+	if (!raw) return null;
+	try {
+		const parsed = JSON.parse(Buffer.from(raw, 'base64url').toString('utf8'));
+		if (typeof parsed?.value === 'number' && typeof parsed?.id === 'number') return parsed;
+	} catch {
+		// ignore malformed cursor, treat as first page
+	}
+	return null;
+}
+
+const commentCounts = db
+	.select({
+		studyId: comments.studyId,
+		count: sql<number>`count(*)`.mapWith(Number).as('comment_count')
+	})
+	.from(comments)
+	.where(eq(comments.isDeleted, false))
+	.groupBy(comments.studyId)
+	.as('comment_counts');
+
+export async function listGalleryStudies(filters: GalleryFilters) {
+	const conditions: SQL[] = [eq(studies.status, 'published')];
+
+	if (filters.tags.length > 0) {
+		conditions.push(sql`${studies.tags} && ${filters.tags}`);
+	}
+	if (filters.severity.length > 0) {
+		conditions.push(sql`${studies.severity} = ANY(${filters.severity}::severity[])`);
+	}
+	if (filters.search.trim()) {
+		conditions.push(
+			sql`studies.search_vector @@ websearch_to_tsquery('english', ${filters.search.trim()})`
+		);
+	}
+
+	const commentCountExpr = sql<number>`coalesce(${commentCounts.count}, 0)`.mapWith(Number);
+	const sortExpr =
+		filters.sort === 'most-liked'
+			? studies.likeCount
+			: filters.sort === 'most-discussed'
+				? commentCountExpr
+				: sql`extract(epoch from ${studies.createdAt})`;
+
+	const cursor = decodeCursor(filters.cursor);
+	if (cursor) {
+		conditions.push(sql`(${sortExpr}, ${studies.id}) < (${cursor.value}, ${cursor.id})`);
+	}
+
+	const rows = await db
+		.select({
+			id: studies.id,
+			slug: studies.slug,
+			title: studies.title,
+			subject: studies.subject,
+			dek: studies.dek,
+			htmlContent: studies.htmlContent,
+			tags: studies.tags,
+			severity: studies.severity,
+			likeCount: studies.likeCount,
+			createdAt: studies.createdAt,
+			commentCount: commentCountExpr
+		})
+		.from(studies)
+		.leftJoin(commentCounts, eq(commentCounts.studyId, studies.id))
+		.where(and(...conditions))
+		.orderBy(desc(sortExpr), desc(studies.id))
+		.limit(PAGE_SIZE + 1);
+
+	const hasMore = rows.length > PAGE_SIZE;
+	const page = hasMore ? rows.slice(0, PAGE_SIZE) : rows;
+
+	let nextCursor: string | null = null;
+	if (hasMore) {
+		const last = page[page.length - 1];
+		const value =
+			filters.sort === 'most-liked'
+				? last.likeCount
+				: filters.sort === 'most-discussed'
+					? last.commentCount
+					: Math.floor(last.createdAt.getTime() / 1000);
+		nextCursor = encodeCursor({ value, id: last.id });
+	}
+
+	return { studies: page, nextCursor };
+}
+
+export interface Facets {
+	tags: { tag: string; count: number }[];
+	severities: { severity: string; count: number }[];
+}
+
+/** Global facet counts across all published studies (not narrowed by the currently-active filters). */
+export async function getGalleryFacets(): Promise<Facets> {
+	const [tagRows, severityRows] = await Promise.all([
+		db
+			.select({
+				tag: sql<string>`unnest(${studies.tags})`.as('tag'),
+				count: sql<number>`count(*)`.mapWith(Number)
+			})
+			.from(studies)
+			.where(eq(studies.status, 'published'))
+			.groupBy(sql`1`)
+			.orderBy(sql`2 desc`),
+		db
+			.select({
+				severity: studies.severity,
+				count: sql<number>`count(*)`.mapWith(Number)
+			})
+			.from(studies)
+			.where(eq(studies.status, 'published'))
+			.groupBy(studies.severity)
+	]);
+
+	return { tags: tagRows, severities: severityRows };
+}
