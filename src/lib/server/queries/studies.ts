@@ -24,7 +24,6 @@ export const LANGUAGES = ['en', 'de', 'all'] as const;
 export type LanguageFilter = (typeof LANGUAGES)[number];
 
 export interface GalleryFilters {
-	tags: string[];
 	severity: string[];
 	language: LanguageFilter;
 	search: string;
@@ -37,7 +36,6 @@ const SEVERITIES = ['mild', 'medium', 'savage'] as const;
 
 /** Shared query-param parsing for the gallery load function and its "load more" API route. */
 export function parseGalleryFilters(url: URL): GalleryFilters {
-	const tags = url.searchParams.getAll('tag');
 	const severity = url.searchParams
 		.getAll('severity')
 		.filter((s) => (SEVERITIES as readonly string[]).includes(s));
@@ -52,7 +50,7 @@ export function parseGalleryFilters(url: URL): GalleryFilters {
 		: 'newest';
 	const cursor = url.searchParams.get('cursor');
 
-	return { tags, severity, language, search, sort, cursor };
+	return { severity, language, search, sort, cursor };
 }
 
 interface Cursor {
@@ -89,9 +87,6 @@ const commentCounts = db
 export async function listGalleryStudies(filters: GalleryFilters) {
 	const conditions: SQL[] = [eq(studies.status, 'published')];
 
-	if (filters.tags.length > 0) {
-		conditions.push(sql`${studies.tags} && ${pgArray(filters.tags)}`);
-	}
 	if (filters.severity.length > 0) {
 		conditions.push(sql`${studies.severity} = ANY(${pgArray(filters.severity)}::severity[])`);
 	}
@@ -99,8 +94,12 @@ export async function listGalleryStudies(filters: GalleryFilters) {
 		conditions.push(eq(studies.language, filters.language));
 	}
 	if (filters.search.trim()) {
+		const term = filters.search.trim();
+		// The search box also matches tags directly (case-insensitive exact
+		// match), since there's no separate tag-filter UI — tags are only
+		// ever surfaced as search suggestions.
 		conditions.push(
-			sql`studies.search_vector @@ websearch_to_tsquery('english', ${filters.search.trim()})`
+			sql`(studies.search_vector @@ websearch_to_tsquery('english', ${term}) OR ${term.toLowerCase()} = ANY(${studies.tags}))`
 		);
 	}
 

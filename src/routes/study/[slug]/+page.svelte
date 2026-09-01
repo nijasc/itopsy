@@ -6,6 +6,18 @@
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
+
+	const severityPreset: Record<string, string> = {
+		mild: 'preset-tonal-success',
+		medium: 'preset-tonal-warning',
+		savage: 'preset-tonal-error'
+	};
+	const severityLabel: Record<string, string> = {
+		mild: 'Mild Offense',
+		medium: 'Medium Offense',
+		savage: 'Savage Offense'
+	};
+	const languageFlag: Record<string, string> = { en: '🇬🇧', de: '🇩🇪' };
 </script>
 
 <svelte:head>
@@ -14,39 +26,75 @@
 
 {#key data.study.id}
 	<div class="flex flex-col">
-		<header
-			class="border-surface-200-800 flex items-center justify-between gap-4 border-b px-4 py-3"
-		>
-			<div class="flex flex-col">
-				<a href={resolve('/')} class="anchor text-xs">&larr; Return to the Registry</a>
-				<h1 class="text-lg font-semibold">{data.study.title}</h1>
-			</div>
-			<div class="flex items-center gap-3">
-				{#if data.study.status === 'draft'}
-					<span class="badge preset-tonal-warning">Sealed Record</span>
+		<header class="bg-surface-100-900 border-surface-200-800 border-b">
+			<div class="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-5">
+				<a href={resolve('/')} class="anchor flex w-fit items-center gap-1 text-xs">
+					&larr; Return to the Registry
+				</a>
+
+				<div class="flex flex-wrap items-start justify-between gap-4">
+					<div class="flex flex-col gap-2">
+						<div class="flex flex-wrap items-center gap-2">
+							<span class="badge {severityPreset[data.study.severity]}">
+								{severityLabel[data.study.severity]}
+							</span>
+							<span class="badge preset-tonal">
+								{languageFlag[data.study.language]}
+								{data.study.language === 'de' ? 'Deutsch' : 'English'}
+							</span>
+							{#if data.study.status === 'draft'}
+								<span class="badge preset-tonal-warning">Sealed Record</span>
+							{/if}
+						</div>
+						<h1 class="text-2xl font-bold text-balance">{data.study.title}</h1>
+						<p class="text-surface-600-400 text-sm">{data.study.subject}</p>
+					</div>
+
+					<LikeButton
+						liked={data.liked}
+						likeCount={data.study.likeCount}
+						canLike={data.user !== null}
+					/>
+				</div>
+
+				{#if data.study.tags.length > 0}
+					<div class="flex flex-wrap gap-1.5">
+						{#each data.study.tags as tag (tag)}
+							<span class="chip preset-tonal text-xs">{tag}</span>
+						{/each}
+					</div>
 				{/if}
-				<LikeButton
-					liked={data.liked}
-					likeCount={data.study.likeCount}
-					canLike={data.user !== null}
-				/>
 			</div>
 		</header>
 
-		<div class="h-[80vh] w-full">
-			<SandboxedStudy html={data.study.htmlContent} />
+		<div class="mx-auto w-full max-w-5xl px-4 py-6">
+			<div class="border-surface-200-800 overflow-hidden rounded-lg border shadow-sm">
+				<div class="bg-surface-200-800 flex items-center gap-2 px-3 py-2">
+					<span class="bg-error-500 size-2.5 rounded-full"></span>
+					<span class="bg-warning-500 size-2.5 rounded-full"></span>
+					<span class="bg-success-500 size-2.5 rounded-full"></span>
+					<span class="text-surface-600-400 ml-2 font-mono text-xs">
+						exhibit://{data.study.slug}
+					</span>
+				</div>
+				<div class="h-[70vh] min-h-[420px] w-full md:h-[80vh]">
+					<SandboxedStudy html={data.study.htmlContent} />
+				</div>
+			</div>
 		</div>
 
-		<section class="mx-auto w-full max-w-3xl px-4 py-8">
-			<h2 class="mb-1 text-lg font-semibold">Public Testimony</h2>
-			<p class="text-surface-600-400 mb-4 text-xs">
-				Statements below are unsworn and almost certainly biased.
-			</p>
-			<CommentThread
-				comments={data.comments}
-				currentUser={data.user}
-				canComment={data.user !== null}
-			/>
+		<section class="mx-auto w-full max-w-3xl px-4 pb-16">
+			<div class="card bg-surface-100-900 p-6">
+				<h2 class="mb-1 text-lg font-semibold">Public Testimony</h2>
+				<p class="text-surface-600-400 mb-4 text-xs">
+					Statements below are unsworn and almost certainly biased.
+				</p>
+				<CommentThread
+					comments={data.comments}
+					currentUser={data.user}
+					canComment={data.user !== null}
+				/>
+			</div>
 		</section>
 	</div>
 {/key}

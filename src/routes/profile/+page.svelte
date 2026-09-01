@@ -53,23 +53,22 @@
 		<Tabs.List class="border-surface-200-800 relative flex gap-1 border-b">
 			<Tabs.Trigger
 				value="liked"
-				class="text-surface-600-400 data-[state=active]:text-primary-500 flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors"
+				class="text-surface-600-400 hover:bg-surface-100-900 data-[state=active]:bg-primary-500 data-[state=active]:text-primary-contrast-500 flex items-center gap-2 rounded-t-md px-4 py-2.5 text-sm font-medium transition-colors"
 			>
 				<Icon nodes={thumbsUpIcon} class="size-4" /> Endorsements Filed ({data.likedStudies.length})
 			</Tabs.Trigger>
 			<Tabs.Trigger
 				value="comments"
-				class="text-surface-600-400 data-[state=active]:text-primary-500 flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors"
+				class="text-surface-600-400 hover:bg-surface-100-900 data-[state=active]:bg-primary-500 data-[state=active]:text-primary-contrast-500 flex items-center gap-2 rounded-t-md px-4 py-2.5 text-sm font-medium transition-colors"
 			>
 				<Icon nodes={messageSquareIcon} class="size-4" /> Testimony Given ({data.comments.length})
 			</Tabs.Trigger>
 			<Tabs.Trigger
 				value="settings"
-				class="text-surface-600-400 data-[state=active]:text-primary-500 px-4 py-2.5 text-sm font-medium transition-colors"
+				class="text-surface-600-400 hover:bg-surface-100-900 data-[state=active]:bg-primary-500 data-[state=active]:text-primary-contrast-500 rounded-t-md px-4 py-2.5 text-sm font-medium transition-colors"
 			>
 				Credentials
 			</Tabs.Trigger>
-			<Tabs.Indicator class="bg-primary-500 absolute bottom-0 h-0.5 transition-all" />
 		</Tabs.List>
 
 		<Tabs.Content value="liked">

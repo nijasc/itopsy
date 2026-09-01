@@ -12,7 +12,6 @@
 			languages: { language: string; count: number }[];
 		};
 		filters: {
-			tags: string[];
 			severity: string[];
 			language: string;
 			search: string;
@@ -32,16 +31,21 @@
 		{ value: 'all', label: 'Alle / All' }
 	];
 
-	const TAG_PREVIEW_COUNT = 10;
-	let tagsExpanded = $state(false);
-	// Always keep a currently-active tag visible, even past the preview cutoff,
-	// so a user can still see and untoggle it without expanding the whole list.
-	const visibleTags = $derived(
-		tagsExpanded
-			? facets.tags
-			: facets.tags.filter((t, i) => i < TAG_PREVIEW_COUNT || filters.tags.includes(t.tag))
-	);
-	const hiddenTagCount = $derived(Math.max(0, facets.tags.length - visibleTags.length));
+	// A writable $derived: tracks filters.search (so browser back/forward or
+	// other nav that changes the URL's q param stays in sync, since FilterBar
+	// persists across gallery navigations and isn't remounted), but can also
+	// be reassigned directly as the user types without fighting the binding.
+	let searchValue = $derived(filters.search);
+	let suggestionsOpen = $state(false);
+	let highlightedIndex = $state(-1);
+
+	const suggestions = $derived.by(() => {
+		const term = searchValue.trim().toLowerCase();
+		const pool = term
+			? facets.tags.filter(({ tag }) => tag.toLowerCase().includes(term))
+			: facets.tags;
+		return pool.slice(0, 8);
+	});
 
 	function countFor(language: string) {
 		if (language === 'all') return facets.languages.reduce((sum, l) => sum + l.count, 0);
@@ -55,18 +59,6 @@
 		// Relative query-string-only navigation on the current page — no base path involved.
 		// eslint-disable-next-line svelte/no-navigation-without-resolve
 		goto(`?${params.toString()}`, { keepFocus: true, noScroll: true });
-	}
-
-	function toggleTag(tag: string) {
-		updateParams((params) => {
-			const current = params.getAll('tag');
-			params.delete('tag');
-			if (current.includes(tag)) {
-				current.filter((t) => t !== tag).forEach((t) => params.append('tag', t));
-			} else {
-				[...current, tag].forEach((t) => params.append('tag', t));
-			}
-		});
 	}
 
 	function toggleSeverity(severity: string) {
@@ -92,25 +84,80 @@
 		});
 	}
 
-	function onSearchSubmit(event: SubmitEvent) {
-		event.preventDefault();
-		const value = (new FormData(event.currentTarget as HTMLFormElement).get('q') as string) ?? '';
+	function runSearch(value: string) {
 		updateParams((params) => {
 			if (value.trim()) params.set('q', value.trim());
 			else params.delete('q');
 		});
 	}
+
+	function onSearchSubmit(event: SubmitEvent) {
+		event.preventDefault();
+		suggestionsOpen = false;
+		runSearch(searchValue);
+	}
+
+	function pickSuggestion(tag: string) {
+		searchValue = tag;
+		suggestionsOpen = false;
+		highlightedIndex = -1;
+		runSearch(tag);
+	}
+
+	function onSearchKeydown(event: KeyboardEvent) {
+		if (!suggestionsOpen || suggestions.length === 0) return;
+		if (event.key === 'ArrowDown') {
+			event.preventDefault();
+			highlightedIndex = (highlightedIndex + 1) % suggestions.length;
+		} else if (event.key === 'ArrowUp') {
+			event.preventDefault();
+			highlightedIndex = (highlightedIndex - 1 + suggestions.length) % suggestions.length;
+		} else if (event.key === 'Enter' && highlightedIndex >= 0) {
+			event.preventDefault();
+			pickSuggestion(suggestions[highlightedIndex].tag);
+		} else if (event.key === 'Escape') {
+			suggestionsOpen = false;
+		}
+	}
 </script>
 
 <div class="border-surface-200-800 flex flex-col gap-4 border-b pb-4">
 	<form onsubmit={onSearchSubmit} class="flex gap-2">
-		<input
-			type="search"
-			name="q"
-			placeholder="Search the registry for wrongdoing…"
-			value={filters.search}
-			class="input flex-1"
-		/>
+		<div class="relative flex-1">
+			<input
+				type="search"
+				name="q"
+				autocomplete="off"
+				placeholder="Search the registry for wrongdoing… (try a tag, e.g. npm)"
+				bind:value={searchValue}
+				onfocus={() => (suggestionsOpen = true)}
+				onblur={() => setTimeout(() => (suggestionsOpen = false), 120)}
+				oninput={() => (highlightedIndex = -1)}
+				onkeydown={onSearchKeydown}
+				class="input w-full"
+			/>
+			{#if suggestionsOpen && suggestions.length > 0}
+				<ul
+					class="card bg-surface-100-900 border-surface-200-800 absolute top-full left-0 z-20 mt-1 w-full border py-1 shadow-xl"
+				>
+					{#each suggestions as { tag, count }, i (tag)}
+						<li>
+							<button
+								type="button"
+								onclick={() => pickSuggestion(tag)}
+								class="hover:bg-primary-500 hover:text-primary-contrast-500 flex w-full items-center justify-between px-3 py-1.5 text-left text-sm {i ===
+								highlightedIndex
+									? 'bg-primary-500 text-primary-contrast-500'
+									: ''}"
+							>
+								<span>{tag}</span>
+								<span class="opacity-60">{count}</span>
+							</button>
+						</li>
+					{/each}
+				</ul>
+			{/if}
+		</div>
 		<button type="submit" class="btn preset-filled-primary-500">Investigate</button>
 	</form>
 
@@ -121,7 +168,7 @@
 				onclick={() => setLanguage(value)}
 				aria-pressed={filters.language === value}
 				class="chip {filters.language === value
-					? 'preset-filled-secondary-500'
+					? 'preset-filled-primary-500'
 					: 'preset-outlined-surface-400-600 hover:preset-tonal'}"
 			>
 				{label} <span class="opacity-60">({countFor(value)})</span>
@@ -155,38 +202,4 @@
 			{/each}
 		</select>
 	</div>
-
-	{#if facets.tags.length > 0}
-		<div class="flex flex-wrap items-center gap-2">
-			{#each visibleTags as { tag, count } (tag)}
-				<button
-					type="button"
-					onclick={() => toggleTag(tag)}
-					aria-pressed={filters.tags.includes(tag)}
-					class="chip {filters.tags.includes(tag)
-						? 'preset-filled-primary-500'
-						: 'preset-outlined-surface-400-600 hover:preset-tonal'}"
-				>
-					{tag} <span class="opacity-60">({count})</span>
-				</button>
-			{/each}
-			{#if hiddenTagCount > 0}
-				<button
-					type="button"
-					onclick={() => (tagsExpanded = true)}
-					class="chip preset-tonal-secondary text-xs"
-				>
-					+{hiddenTagCount} more
-				</button>
-			{:else if tagsExpanded && facets.tags.length > TAG_PREVIEW_COUNT}
-				<button
-					type="button"
-					onclick={() => (tagsExpanded = false)}
-					class="chip preset-tonal-secondary text-xs"
-				>
-					Show fewer
-				</button>
-			{/if}
-		</div>
-	{/if}
 </div>
