@@ -1,7 +1,10 @@
 @import 'tailwindcss';
 
+@import '@skeletonlabs/skeleton';
+@import '@skeletonlabs/skeleton/themes/vintage';
+
+@custom-variant dark (&:where([data-mode='dark'], [data-mode='dark'] *));
+
 body {
-	background-color: light-dark(#ffffff, #0a0a0a);
-	color: light-dark(#171717, #e5e5e5);
-	color-scheme: light dark;
+	@apply bg-surface-50-950 text-surface-950-50;
 }

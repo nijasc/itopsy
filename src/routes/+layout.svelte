@@ -2,6 +2,10 @@
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import { resolve } from '$app/paths';
+	import { AppBar, Toast } from '@skeletonlabs/skeleton-svelte';
+	import { toaster } from '$lib/toaster';
+	import LightSwitch from '$lib/components/LightSwitch.svelte';
+	import UserMenu from '$lib/components/UserMenu.svelte';
 	import type { LayoutData } from './$types';
 
 	let { data, children }: { data: LayoutData; children: import('svelte').Snippet } = $props();
@@ -11,26 +15,36 @@
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-<nav
-	class="flex items-center justify-between border-b border-neutral-200 px-4 py-3 text-sm dark:border-neutral-800"
->
-	<a href={resolve('/')} class="font-semibold">Brandopsy</a>
-	<div class="flex items-center gap-4">
-		{#if data.user}
-			{#if data.user.role === 'admin' || data.user.role === 'owner'}
-				<a href={resolve('/admin/studies')} class="hover:underline">Admin</a>
+<AppBar class="border-surface-200-800 border-b">
+	<AppBar.Toolbar class="mx-auto max-w-6xl grid-cols-[auto_1fr_auto] px-4">
+		<AppBar.Lead>
+			<a href={resolve('/')} class="text-xl font-bold tracking-tight">🗞️ Brandopsy</a>
+		</AppBar.Lead>
+		<AppBar.Headline></AppBar.Headline>
+		<AppBar.Trail class="items-center gap-3">
+			<LightSwitch />
+			{#if data.user}
+				<UserMenu user={data.user} />
+			{:else}
+				<a href={resolve('/login')} class="btn btn-sm preset-tonal">Log in</a>
+				<a href={resolve('/signup')} class="btn btn-sm preset-filled-primary-500">Sign up</a>
 			{/if}
-			{#if data.user.role === 'owner'}
-				<a href={resolve('/admin/users')} class="hover:underline">Users</a>
-			{/if}
-			<form method="POST" action={resolve('/logout')}>
-				<button type="submit" class="hover:underline">Log out</button>
-			</form>
-		{:else}
-			<a href={resolve('/login')} class="hover:underline">Log in</a>
-			<a href={resolve('/signup')} class="hover:underline">Sign up</a>
-		{/if}
-	</div>
-</nav>
+		</AppBar.Trail>
+	</AppBar.Toolbar>
+</AppBar>
 
 {@render children()}
+
+<Toast.Group {toaster}>
+	{#snippet children(toast)}
+		<Toast {toast}>
+			<Toast.Message>
+				<Toast.Title>{toast.title}</Toast.Title>
+				{#if toast.description}
+					<Toast.Description>{toast.description}</Toast.Description>
+				{/if}
+			</Toast.Message>
+			<Toast.CloseTrigger />
+		</Toast>
+	{/snippet}
+</Toast.Group>
