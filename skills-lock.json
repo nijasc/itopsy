@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "skills": {
+    "svelte-deployment": {
+      "source": "spences10/skills",
+      "sourceType": "github",
+      "skillPath": "svelte-deployment/SKILL.md",
+      "computedHash": "3043d159e3bf3bbdad19710a051c73ad9afcd2132afe4c5a0237ddacb2cc13d5"
+    },
+    "svelte-runes": {
+      "source": "spences10/skills",
+      "sourceType": "github",
+      "skillPath": "svelte-runes/SKILL.md",
+      "computedHash": "0f5020e374818f286f17d6d0360c2262852d802b26e3912c835bb79081ca75d9"
+    },
+    "svelte-styling": {
+      "source": "spences10/skills",
+      "sourceType": "github",
+      "skillPath": "svelte-styling/SKILL.md",
+      "computedHash": "3a053f2d15cfa8b26572e8879efd3671ef232cbb4161a62b33abcd341051bf74"
+    },
+    "sveltekit-data-flow": {
+      "source": "spences10/skills",
+      "sourceType": "github",
+      "skillPath": "sveltekit-data-flow/SKILL.md",
+      "computedHash": "23f72e7b625ed362591e2cf99907e7891f7b151f85c3fc03554628bcef80f14c"
+    },
+    "sveltekit-remote-functions": {
+      "source": "spences10/skills",
+      "sourceType": "github",
+      "skillPath": "sveltekit-remote-functions/SKILL.md",
+      "computedHash": "069cee1b4241a15ee3bf7530f33882b85b4a9d3a66f84780ed104d13e3d2da90"
+    },
+    "sveltekit-structure": {
+      "source": "spences10/skills",
+      "sourceType": "github",
+      "skillPath": "sveltekit-structure/SKILL.md",
+      "computedHash": "ff34aa698d6e3e9caac29c921cdc1a8d6258dd0c5da5d951d1f7536be7f075c9"
+    }
+  }
+}
