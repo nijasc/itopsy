@@ -18,7 +18,7 @@
 <AppBar
 	class="border-surface-200-800 bg-surface-50-950/90 sticky top-0 z-40 border-b shadow-sm backdrop-blur"
 >
-	<AppBar.Toolbar class="mx-auto max-w-6xl grid-cols-[auto_1fr_auto] px-4 py-2.5">
+	<AppBar.Toolbar class="mx-auto grid max-w-6xl grid-cols-[auto_1fr_auto] items-center px-4 py-2.5">
 		<AppBar.Lead>
 			<a href={resolve('/')} class="flex items-center gap-2.5">
 				<img src={icon} alt="ITopsy" class="size-8" />
@@ -26,7 +26,7 @@
 			</a>
 		</AppBar.Lead>
 		<AppBar.Headline></AppBar.Headline>
-		<AppBar.Trail class="items-center gap-3">
+		<AppBar.Trail class="flex items-center justify-end gap-3">
 			<LightSwitch />
 			{#if data.user}
 				<UserMenu user={data.user} />
