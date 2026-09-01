@@ -21,8 +21,12 @@
 
 <Popover {open} onOpenChange={(details) => (open = details.open)}>
 	<Popover.Trigger class="btn-icon" aria-label="Open credentials menu">
-		<Avatar class="size-9">
-			<Avatar.Fallback class="bg-primary-500 text-primary-contrast-500">{initials}</Avatar.Fallback>
+		<Avatar class="size-9 shrink-0 overflow-hidden rounded-full">
+			<Avatar.Fallback
+				class="bg-primary-500 text-primary-contrast-500 flex size-full items-center justify-center text-sm font-semibold"
+			>
+				{initials}
+			</Avatar.Fallback>
 		</Avatar>
 	</Popover.Trigger>
 	<Portal>
