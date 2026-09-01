@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
+	import seal from '$lib/assets/itopsy-logo.png';
 	import SandboxedStudy from '$lib/components/SandboxedStudy.svelte';
 	import LikeButton from '$lib/components/LikeButton.svelte';
 	import CommentThread from '$lib/components/CommentThread.svelte';
@@ -18,10 +20,57 @@
 		savage: 'Savage Offense'
 	};
 	const languageFlag: Record<string, string> = { en: '🇬🇧', de: '🇩🇪' };
+
+	const canonicalUrl = $derived(page.url.origin + page.url.pathname);
+	const ogImage = $derived(`${page.url.origin}${seal}`);
+	const jsonLd = $derived(
+		// Escape angle brackets so a title/dek/tag can't break out of the
+		// injected JSON-LD element below.
+		JSON.stringify({
+			'@context': 'https://schema.org',
+			'@type': 'Article',
+			headline: data.study.title,
+			description: data.study.dek,
+			inLanguage: data.study.language,
+			datePublished: data.study.createdAt,
+			dateModified: data.study.updatedAt,
+			url: canonicalUrl,
+			image: ogImage,
+			about: data.study.subject,
+			keywords: data.study.tags.join(', '),
+			publisher: { '@type': 'Organization', name: 'ITopsy' }
+		}).replace(/</g, '\\u003c')
+	);
 </script>
 
 <svelte:head>
 	<title>{data.study.title} — ITopsy</title>
+	{#if data.study.status === 'published'}
+		<meta name="description" content={data.study.dek} />
+		<link rel="canonical" href={canonicalUrl} />
+
+		<meta property="og:type" content="article" />
+		<meta property="og:site_name" content="ITopsy" />
+		<meta property="og:title" content={data.study.title} />
+		<meta property="og:description" content={data.study.dek} />
+		<meta property="og:url" content={canonicalUrl} />
+		<meta property="og:image" content={ogImage} />
+		<meta property="article:section" content={data.study.subject} />
+		{#each data.study.tags as tag (tag)}
+			<meta property="article:tag" content={tag} />
+		{/each}
+
+		<meta name="twitter:card" content="summary" />
+		<meta name="twitter:title" content={data.study.title} />
+		<meta name="twitter:description" content={data.study.dek} />
+		<meta name="twitter:image" content={ogImage} />
+
+		<!-- jsonLd is our own JSON.stringify'd data with angle brackets escaped; -->
+		<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+		{@html '<' + 'script type="application/ld+json">' + jsonLd + '</' + 'script>'}
+	{:else}
+		<meta name="robots" content="noindex, nofollow" />
+	{/if}
 </svelte:head>
 
 {#key data.study.id}
