@@ -1,6 +1,6 @@
 import * as t from 'drizzle-orm/pg-core';
 import { pgTable } from 'drizzle-orm/pg-core';
-import { severityEnum, statusEnum } from './enums';
+import { severityEnum, statusEnum, languageEnum } from './enums';
 import { users } from './users';
 
 // The generated `search_vector` tsvector column + its GIN index are added
@@ -18,6 +18,7 @@ export const studies = pgTable(
 		tags: t.text('tags').array().notNull().default([]),
 		severity: severityEnum('severity').notNull(),
 		status: statusEnum('status').notNull().default('draft'),
+		language: languageEnum('language').notNull().default('en'),
 		authorId: t
 			.text('author_id')
 			.notNull()
@@ -29,6 +30,7 @@ export const studies = pgTable(
 	(table) => [
 		t.uniqueIndex('studies_slug_idx').on(table.slug),
 		t.index('studies_status_idx').on(table.status),
+		t.index('studies_language_idx').on(table.language),
 		t.index('studies_author_id_idx').on(table.authorId)
 	]
 );

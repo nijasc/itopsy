@@ -46,6 +46,13 @@
 					<option value="published" selected={data.study.status === 'published'}>Published</option>
 				</select>
 			</label>
+			<label class="label text-sm">
+				<span class="label-text">Language</span>
+				<select name="language" class="select">
+					<option value="en" selected={data.study.language === 'en'}>English</option>
+					<option value="de" selected={data.study.language === 'de'}>Deutsch</option>
+				</select>
+			</label>
 			<label class="label col-span-2 text-sm md:col-span-2">
 				<span class="label-text">Tags (comma-separated)</span>
 				<input name="tags" value={data.study.tags.join(', ')} class="input" />

@@ -7,8 +7,17 @@
 		facets,
 		filters
 	}: {
-		facets: { tags: { tag: string; count: number }[] };
-		filters: { tags: string[]; severity: string[]; search: string; sort: string };
+		facets: {
+			tags: { tag: string; count: number }[];
+			languages: { language: string; count: number }[];
+		};
+		filters: {
+			tags: string[];
+			severity: string[];
+			language: string;
+			search: string;
+			sort: string;
+		};
 	} = $props();
 
 	const SEVERITIES = ['mild', 'medium', 'savage'] as const;
@@ -17,6 +26,16 @@
 		{ value: 'most-liked', label: 'Most Beloved' },
 		{ value: 'most-discussed', label: 'Most Litigated' }
 	];
+	const LANGUAGES = [
+		{ value: 'en', label: 'English' },
+		{ value: 'de', label: 'Deutsch' },
+		{ value: 'all', label: 'Alle / All' }
+	];
+
+	function countFor(language: string) {
+		if (language === 'all') return facets.languages.reduce((sum, l) => sum + l.count, 0);
+		return facets.languages.find((l) => l.language === language)?.count ?? 0;
+	}
 
 	function updateParams(mutate: (params: SvelteURLSearchParams) => void) {
 		const params = new SvelteURLSearchParams(page.url.searchParams);
@@ -55,6 +74,13 @@
 		updateParams((params) => params.set('sort', sort));
 	}
 
+	function setLanguage(language: string) {
+		updateParams((params) => {
+			if (language === 'en') params.delete('lang');
+			else params.set('lang', language);
+		});
+	}
+
 	function onSearchSubmit(event: SubmitEvent) {
 		event.preventDefault();
 		const value = (new FormData(event.currentTarget as HTMLFormElement).get('q') as string) ?? '';
@@ -76,6 +102,21 @@
 		/>
 		<button type="submit" class="btn preset-filled-primary-500">Investigate</button>
 	</form>
+
+	<div class="flex flex-wrap gap-2">
+		{#each LANGUAGES as { value, label } (value)}
+			<button
+				type="button"
+				onclick={() => setLanguage(value)}
+				aria-pressed={filters.language === value}
+				class="chip {filters.language === value
+					? 'preset-filled-secondary-500'
+					: 'preset-outlined-surface-400-600 hover:preset-tonal'}"
+			>
+				{label} <span class="opacity-60">({countFor(value)})</span>
+			</button>
+		{/each}
+	</div>
 
 	<div class="flex flex-wrap items-center gap-4">
 		<div class="flex flex-wrap gap-2">

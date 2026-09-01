@@ -13,6 +13,7 @@
 			htmlContent: string;
 			tags: string[];
 			severity: string;
+			language: string;
 			likeCount: number;
 			commentCount: number;
 		};
@@ -28,6 +29,7 @@
 		medium: 'Medium Offense',
 		savage: 'Savage Offense'
 	};
+	const languageFlag: Record<string, string> = { en: '🇬🇧', de: '🇩🇪' };
 </script>
 
 <a
@@ -39,7 +41,7 @@
 	</div>
 	<div class="flex flex-1 flex-col gap-2 p-4">
 		<div class="text-surface-600-400 flex items-center justify-between gap-2 text-xs">
-			<span>{study.subject}</span>
+			<span>{languageFlag[study.language]} {study.subject}</span>
 			<span class="badge {severityPreset[study.severity]}">{severityLabel[study.severity]}</span>
 		</div>
 		<h2 class="text-lg font-semibold group-hover:underline">{study.title}</h2>

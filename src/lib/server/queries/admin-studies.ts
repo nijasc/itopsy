@@ -10,6 +10,7 @@ export async function listAllStudiesForAdmin() {
 			title: studies.title,
 			status: studies.status,
 			severity: studies.severity,
+			language: studies.language,
 			likeCount: studies.likeCount,
 			commentCount: sql<number>`(
 				select count(*) from ${comments}

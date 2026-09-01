@@ -7,13 +7,39 @@ export type Sort = (typeof SORTS)[number];
 
 export const PAGE_SIZE = 24;
 
+export const LANGUAGES = ['en', 'de', 'all'] as const;
+export type LanguageFilter = (typeof LANGUAGES)[number];
+
 export interface GalleryFilters {
 	tags: string[];
 	severity: string[];
+	language: LanguageFilter;
 	search: string;
 	sort: Sort;
 	/** Opaque cursor from the previous page's `nextCursor`. */
 	cursor: string | null;
+}
+
+const SEVERITIES = ['mild', 'medium', 'savage'] as const;
+
+/** Shared query-param parsing for the gallery load function and its "load more" API route. */
+export function parseGalleryFilters(url: URL): GalleryFilters {
+	const tags = url.searchParams.getAll('tag');
+	const severity = url.searchParams
+		.getAll('severity')
+		.filter((s) => (SEVERITIES as readonly string[]).includes(s));
+	const languageParam = url.searchParams.get('lang');
+	const language: LanguageFilter = (LANGUAGES as readonly string[]).includes(languageParam ?? '')
+		? (languageParam as LanguageFilter)
+		: 'en';
+	const search = url.searchParams.get('q') ?? '';
+	const sortParam = url.searchParams.get('sort');
+	const sort: Sort = (SORTS as readonly string[]).includes(sortParam ?? '')
+		? (sortParam as Sort)
+		: 'newest';
+	const cursor = url.searchParams.get('cursor');
+
+	return { tags, severity, language, search, sort, cursor };
 }
 
 interface Cursor {
@@ -56,6 +82,9 @@ export async function listGalleryStudies(filters: GalleryFilters) {
 	if (filters.severity.length > 0) {
 		conditions.push(sql`${studies.severity} = ANY(${filters.severity}::severity[])`);
 	}
+	if (filters.language !== 'all') {
+		conditions.push(eq(studies.language, filters.language));
+	}
 	if (filters.search.trim()) {
 		conditions.push(
 			sql`studies.search_vector @@ websearch_to_tsquery('english', ${filters.search.trim()})`
@@ -85,6 +114,7 @@ export async function listGalleryStudies(filters: GalleryFilters) {
 			htmlContent: studies.htmlContent,
 			tags: studies.tags,
 			severity: studies.severity,
+			language: studies.language,
 			likeCount: studies.likeCount,
 			createdAt: studies.createdAt,
 			commentCount: commentCountExpr
@@ -116,11 +146,12 @@ export async function listGalleryStudies(filters: GalleryFilters) {
 export interface Facets {
 	tags: { tag: string; count: number }[];
 	severities: { severity: string; count: number }[];
+	languages: { language: string; count: number }[];
 }
 
 /** Global facet counts across all published studies (not narrowed by the currently-active filters). */
 export async function getGalleryFacets(): Promise<Facets> {
-	const [tagRows, severityRows] = await Promise.all([
+	const [tagRows, severityRows, languageRows] = await Promise.all([
 		db
 			.select({
 				tag: sql<string>`unnest(${studies.tags})`.as('tag'),
@@ -137,8 +168,16 @@ export async function getGalleryFacets(): Promise<Facets> {
 			})
 			.from(studies)
 			.where(eq(studies.status, 'published'))
-			.groupBy(studies.severity)
+			.groupBy(studies.severity),
+		db
+			.select({
+				language: studies.language,
+				count: sql<number>`count(*)`.mapWith(Number)
+			})
+			.from(studies)
+			.where(eq(studies.status, 'published'))
+			.groupBy(studies.language)
 	]);
 
-	return { tags: tagRows, severities: severityRows };
+	return { tags: tagRows, severities: severityRows, languages: languageRows };
 }

@@ -15,6 +15,7 @@
 			htmlContent: string;
 			tags: string[];
 			severity: string;
+			language: string;
 			likeCount: number;
 			commentCount: number;
 		}[];

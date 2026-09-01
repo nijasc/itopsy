@@ -15,12 +15,14 @@
 	<link rel="icon" type="image/png" href={icon} />
 </svelte:head>
 
-<AppBar class="border-surface-200-800 border-b">
-	<AppBar.Toolbar class="mx-auto max-w-6xl grid-cols-[auto_1fr_auto] px-4">
+<AppBar
+	class="border-surface-200-800 bg-surface-50-950/90 sticky top-0 z-40 border-b shadow-sm backdrop-blur"
+>
+	<AppBar.Toolbar class="mx-auto max-w-6xl grid-cols-[auto_1fr_auto] px-4 py-2.5">
 		<AppBar.Lead>
-			<a href={resolve('/')} class="flex items-center gap-2 text-xl font-bold tracking-tight">
-				<img src={icon} alt="" class="size-6" />
-				ITopsy
+			<a href={resolve('/')} class="flex items-center gap-2.5">
+				<img src={icon} alt="ITopsy" class="size-8" />
+				<span class="text-xl leading-none font-bold tracking-tight">ITopsy</span>
 			</a>
 		</AppBar.Lead>
 		<AppBar.Headline></AppBar.Headline>

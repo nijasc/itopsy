@@ -28,6 +28,7 @@
 				<tr>
 					<th>Case</th>
 					<th>Status</th>
+					<th>Language</th>
 					<th>Severity</th>
 					<th>Co-signers</th>
 					<th>Depositions</th>
@@ -51,6 +52,7 @@
 								{study.status === 'published' ? 'Published' : 'Sealed'}
 							</span>
 						</td>
+						<td>{study.language === 'de' ? 'Deutsch' : 'English'}</td>
 						<td class="capitalize">{study.severity}</td>
 						<td>{study.likeCount}</td>
 						<td>{study.commentCount}</td>
