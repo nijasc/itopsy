@@ -1,19 +1,7 @@
 import { and, desc, eq, sql, type SQL } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { studies, comments } from '$lib/server/db/schema';
-
-/**
- * Builds a Postgres `ARRAY[...]` literal from individually-bound parameters.
- * Drizzle's `sql` tag does NOT turn a JS array embedded as `${arr}` into a
- * Postgres array parameter — it sends it as a single flattened value, which
- * fails with "malformed array literal" against both postgres-js and neon-http.
- */
-function pgArray(values: string[]) {
-	return sql`ARRAY[${sql.join(
-		values.map((v) => sql`${v}`),
-		sql`, `
-	)}]`;
-}
+import { pgArray } from '$lib/server/db/pg-array';
 
 export const SORTS = ['newest', 'most-liked', 'most-discussed'] as const;
 export type Sort = (typeof SORTS)[number];

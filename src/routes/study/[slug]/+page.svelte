@@ -83,6 +83,27 @@
 			</div>
 		</div>
 
+		{#if data.recommendations.length > 0}
+			<section class="mx-auto w-full max-w-5xl px-4 pb-10">
+				<h2 class="mb-3 text-lg font-semibold">Related Case Files</h2>
+				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+					{#each data.recommendations as rec (rec.slug)}
+						<a
+							href={resolve('/study/[slug]', { slug: rec.slug })}
+							class="card bg-surface-100-900 flex flex-col gap-2 p-4 transition hover:shadow-md"
+						>
+							<div class="text-surface-600-400 flex items-center justify-between text-xs">
+								<span>{rec.subject}</span>
+								<span class="badge {severityPreset[rec.severity]}">{rec.severity}</span>
+							</div>
+							<p class="text-sm font-medium">{rec.title}</p>
+							<span class="text-surface-600-400 text-xs">{rec.likeCount} co-signers</span>
+						</a>
+					{/each}
+				</div>
+			</section>
+		{/if}
+
 		<section class="mx-auto w-full max-w-3xl px-4 pb-16">
 			<div class="card bg-surface-100-900 p-6">
 				<h2 class="mb-1 text-lg font-semibold">Public Testimony</h2>

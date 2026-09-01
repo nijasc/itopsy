@@ -3,7 +3,7 @@ import { error, fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
 import { likes, comments } from '$lib/server/db/schema';
-import { getStudyBySlug } from '$lib/server/queries/study-detail';
+import { getStudyBySlug, getRecommendations } from '$lib/server/queries/study-detail';
 import { listStudyComments } from '$lib/server/queries/comments';
 import { requireRole, hasRole } from '$lib/server/authz';
 import { commentBodySchema, COMMENT_EDIT_WINDOW_MS } from '$lib/schemas/comment';
@@ -21,7 +21,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		error(404, 'Study not found');
 	}
 
-	const [studyComments, liked] = await Promise.all([
+	const [studyComments, liked, recommendations] = await Promise.all([
 		listStudyComments(study.id),
 		locals.user
 			? db
@@ -30,10 +30,16 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 					.where(and(eq(likes.userId, locals.user.id), eq(likes.studyId, study.id)))
 					.limit(1)
 					.then((rows) => rows.length > 0)
-			: Promise.resolve(false)
+			: Promise.resolve(false),
+		getRecommendations({
+			id: study.id,
+			tags: study.tags,
+			severity: study.severity,
+			language: study.language
+		})
 	]);
 
-	return { study, comments: studyComments, liked };
+	return { study, comments: studyComments, liked, recommendations };
 };
 
 export const actions: Actions = {
