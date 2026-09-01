@@ -13,9 +13,9 @@
 
 	const SEVERITIES = ['mild', 'medium', 'savage'] as const;
 	const SORTS = [
-		{ value: 'newest', label: 'Newest' },
-		{ value: 'most-liked', label: 'Most liked' },
-		{ value: 'most-discussed', label: 'Most discussed' }
+		{ value: 'newest', label: 'Freshest Outrage' },
+		{ value: 'most-liked', label: 'Most Beloved' },
+		{ value: 'most-discussed', label: 'Most Litigated' }
 	];
 
 	function updateParams(mutate: (params: SvelteURLSearchParams) => void) {
@@ -65,17 +65,16 @@
 	}
 </script>
 
-<div class="flex flex-col gap-4 border-b border-neutral-200 pb-4">
+<div class="border-surface-200-800 flex flex-col gap-4 border-b pb-4">
 	<form onsubmit={onSearchSubmit} class="flex gap-2">
 		<input
 			type="search"
 			name="q"
-			placeholder="Search case studies…"
+			placeholder="Search the registry for wrongdoing…"
 			value={filters.search}
-			class="flex-1 rounded border border-neutral-300 px-3 py-2 text-sm"
+			class="input flex-1"
 		/>
-		<button type="submit" class="rounded bg-neutral-900 px-4 py-2 text-sm text-white">Search</button
-		>
+		<button type="submit" class="btn preset-filled-primary-500">Investigate</button>
 	</form>
 
 	<div class="flex flex-wrap items-center gap-4">
@@ -85,11 +84,9 @@
 					type="button"
 					onclick={() => toggleSeverity(severity)}
 					aria-pressed={filters.severity.includes(severity)}
-					class="rounded-full border px-3 py-1 text-xs capitalize"
-					class:bg-neutral-900={filters.severity.includes(severity)}
-					class:text-white={filters.severity.includes(severity)}
-					class:border-neutral-900={filters.severity.includes(severity)}
-					class:border-neutral-300={!filters.severity.includes(severity)}
+					class="chip capitalize {filters.severity.includes(severity)
+						? 'preset-filled-primary-500'
+						: 'preset-outlined-surface-400-600 hover:preset-tonal'}"
 				>
 					{severity}
 				</button>
@@ -99,7 +96,7 @@
 		<select
 			value={filters.sort}
 			onchange={(e) => setSort((e.currentTarget as HTMLSelectElement).value)}
-			class="rounded border border-neutral-300 px-2 py-1 text-xs"
+			class="select w-auto text-xs"
 		>
 			{#each SORTS as sortOption (sortOption.value)}
 				<option value={sortOption.value}>{sortOption.label}</option>
@@ -114,13 +111,11 @@
 					type="button"
 					onclick={() => toggleTag(tag)}
 					aria-pressed={filters.tags.includes(tag)}
-					class="rounded-full border px-3 py-1 text-xs"
-					class:bg-neutral-900={filters.tags.includes(tag)}
-					class:text-white={filters.tags.includes(tag)}
-					class:border-neutral-900={filters.tags.includes(tag)}
-					class:border-neutral-300={!filters.tags.includes(tag)}
+					class="chip {filters.tags.includes(tag)
+						? 'preset-filled-primary-500'
+						: 'preset-outlined-surface-400-600 hover:preset-tonal'}"
 				>
-					{tag} <span class="text-neutral-400">({count})</span>
+					{tag} <span class="opacity-60">({count})</span>
 				</button>
 			{/each}
 		</div>

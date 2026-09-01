@@ -34,9 +34,9 @@
 </script>
 
 {#snippet commentItem(comment: CommentRow, isReply: boolean)}
-	<div class="flex flex-col gap-1 {isReply ? 'ml-8 border-l border-neutral-200 pl-4' : ''}">
+	<div class="flex flex-col gap-1 {isReply ? 'border-surface-200-800 ml-8 border-l pl-4' : ''}">
 		{#if comment.isDeleted}
-			<p class="text-sm text-neutral-400 italic">[deleted]</p>
+			<p class="text-surface-500 text-sm italic">[retracted under advice of counsel]</p>
 		{:else if editingId === comment.id}
 			<form
 				method="POST"
@@ -50,41 +50,35 @@
 				class="flex flex-col gap-2"
 			>
 				<input type="hidden" name="commentId" value={comment.id} />
-				<textarea
-					name="body"
-					required
-					rows="2"
-					class="rounded border border-neutral-300 px-3 py-2 text-sm">{comment.body}</textarea
-				>
+				<textarea name="body" required rows="2" class="textarea">{comment.body}</textarea>
 				<div class="flex gap-2">
-					<button type="submit" class="rounded bg-neutral-900 px-3 py-1 text-xs text-white"
-						>Save</button
+					<button type="submit" class="btn btn-sm preset-filled-primary-500">Amend Testimony</button
 					>
-					<button type="button" onclick={() => (editingId = null)} class="text-xs text-neutral-500">
-						Cancel
+					<button type="button" onclick={() => (editingId = null)} class="btn btn-sm preset-tonal">
+						Withdraw
 					</button>
 				</div>
 			</form>
 		{:else}
-			<div class="flex items-baseline gap-2 text-xs text-neutral-500">
-				<span class="font-medium text-neutral-700">{displayName(comment.authorEmail)}</span>
+			<div class="text-surface-600-400 flex items-baseline gap-2 text-xs">
+				<span class="text-surface-800-200 font-medium">{displayName(comment.authorEmail)}</span>
 				<span>{comment.createdAt.toLocaleDateString()}</span>
-				{#if comment.editedAt}<span>(edited)</span>{/if}
+				{#if comment.editedAt}<span>(amended)</span>{/if}
 			</div>
 			<p class="text-sm whitespace-pre-wrap">{comment.body}</p>
-			<div class="flex gap-3 text-xs text-neutral-500">
+			<div class="text-surface-600-400 flex gap-3 text-xs">
 				{#if !isReply && canComment}
 					<button onclick={() => (replyingTo = replyingTo === comment.id ? null : comment.id)}>
-						Reply
+						Rebut
 					</button>
 				{/if}
 				{#if canEdit(comment)}
-					<button onclick={() => (editingId = comment.id)}>Edit</button>
+					<button onclick={() => (editingId = comment.id)}>Amend</button>
 				{/if}
 				{#if currentUser && (currentUser.id === comment.authorId || canModerate())}
 					<form method="POST" action="?/deleteComment" use:enhance>
 						<input type="hidden" name="commentId" value={comment.id} />
-						<button type="submit">Delete</button>
+						<button type="submit">Retract</button>
 					</form>
 				{/if}
 			</div>
@@ -101,13 +95,15 @@
 	{#if canComment}
 		<CommentForm />
 	{:else}
-		<p class="text-sm text-neutral-500">
-			<a href={resolve('/login')} class="underline">Log in</a> to join the discussion.
+		<p class="text-surface-600-400 text-sm">
+			<a href={resolve('/login')} class="anchor">Log in</a> to submit sworn testimony.
 		</p>
 	{/if}
 
 	{#if comments.length === 0}
-		<p class="text-sm text-neutral-500">No comments yet.</p>
+		<p class="text-surface-600-400 text-sm">
+			No testimony has been entered into the record. The court awaits.
+		</p>
 	{:else}
 		<div class="flex flex-col gap-6">
 			{#each comments as comment (comment.id)}

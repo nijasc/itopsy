@@ -34,15 +34,11 @@
 		name="body"
 		required
 		rows={parentId ? 2 : 3}
-		placeholder={parentId ? 'Write a reply…' : 'Add a comment…'}
-		class="rounded border border-neutral-300 px-3 py-2 text-sm"></textarea>
+		placeholder={parentId ? 'File your rebuttal…' : 'Enter your testimony for the record…'}
+		class="textarea"></textarea>
 	<div>
-		<button
-			type="submit"
-			disabled={submitting}
-			class="rounded bg-neutral-900 px-3 py-1.5 text-sm text-white disabled:opacity-50"
-		>
-			{parentId ? 'Reply' : 'Comment'}
+		<button type="submit" disabled={submitting} class="btn preset-filled-primary-500">
+			{parentId ? 'Submit Rebuttal' : 'Submit Testimony'}
 		</button>
 	</div>
 </form>

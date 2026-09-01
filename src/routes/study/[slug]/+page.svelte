@@ -14,18 +14,16 @@
 
 {#key data.study.id}
 	<div class="flex flex-col">
-		<header class="flex items-center justify-between gap-4 border-b border-neutral-200 px-4 py-3">
+		<header
+			class="border-surface-200-800 flex items-center justify-between gap-4 border-b px-4 py-3"
+		>
 			<div class="flex flex-col">
-				<a href={resolve('/')} class="text-xs text-neutral-500 hover:underline"
-					>&larr; Back to gallery</a
-				>
+				<a href={resolve('/')} class="anchor text-xs">&larr; Return to the Registry</a>
 				<h1 class="text-lg font-semibold">{data.study.title}</h1>
 			</div>
 			<div class="flex items-center gap-3">
 				{#if data.study.status === 'draft'}
-					<span class="rounded bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800"
-						>Draft</span
-					>
+					<span class="badge preset-tonal-warning">Sealed Record</span>
 				{/if}
 				<LikeButton
 					liked={data.liked}
@@ -40,7 +38,10 @@
 		</div>
 
 		<section class="mx-auto w-full max-w-3xl px-4 py-8">
-			<h2 class="mb-4 text-lg font-semibold">Discussion</h2>
+			<h2 class="mb-1 text-lg font-semibold">Public Testimony</h2>
+			<p class="text-surface-600-400 mb-4 text-xs">
+				Statements below are unsworn and almost certainly biased.
+			</p>
 			<CommentThread
 				comments={data.comments}
 				currentUser={data.user}

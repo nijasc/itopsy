@@ -44,7 +44,9 @@
 </script>
 
 {#if studies.length === 0}
-	<p class="py-16 text-center text-neutral-500">No case studies match these filters.</p>
+	<p class="text-surface-600-400 py-16 text-center text-sm">
+		No case studies match these filters. Either the guilty went free, or you typed something wrong.
+	</p>
 {:else}
 	<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
 		{#each studies as study (study.slug)}
@@ -55,13 +57,8 @@
 
 {#if nextCursor}
 	<div class="flex justify-center py-4">
-		<button
-			type="button"
-			onclick={loadMore}
-			disabled={loadingMore}
-			class="rounded border border-neutral-300 px-4 py-2 text-sm disabled:opacity-50"
-		>
-			{loadingMore ? 'Loading…' : 'Load more'}
+		<button type="button" onclick={loadMore} disabled={loadingMore} class="btn preset-tonal">
+			{loadingMore ? 'Subpoenaing more records…' : 'Reveal More Evidence'}
 		</button>
 	</div>
 {/if}

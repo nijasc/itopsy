@@ -14,8 +14,11 @@
 
 <main class="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8">
 	<header class="flex flex-col gap-2">
-		<h1 class="text-3xl font-bold">Brandopsy</h1>
-		<p class="text-neutral-600">Satirical case studies of brands, products, and institutions.</p>
+		<h1 class="text-3xl font-bold">The Brandopsy Registry</h1>
+		<p class="text-surface-600-400">
+			A public archive of brands, products, and institutions that have been examined,
+			cross-referenced, and found guilty of something. No refunds.
+		</p>
 	</header>
 
 	<FilterBar facets={data.facets} filters={data.filters} />

@@ -6,41 +6,37 @@
 </script>
 
 <svelte:head>
-	<title>Log in — Brandopsy</title>
+	<title>Verify Credentials — Brandopsy</title>
 </svelte:head>
 
-<main class="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 px-4">
-	<h1 class="text-2xl font-semibold">Log in</h1>
+<main class="mx-auto flex min-h-[80vh] max-w-sm flex-col justify-center gap-6 px-4">
+	<div class="card bg-surface-100-900 flex flex-col gap-6 p-6">
+		<header>
+			<h1 class="text-xl font-semibold">Credential Verification</h1>
+			<p class="text-surface-600-400 text-sm">Present your papers to re-enter the archive.</p>
+		</header>
 
-	<form method="POST" class="flex flex-col gap-4">
-		<label class="flex flex-col gap-1">
-			<span class="text-sm font-medium">Email</span>
-			<input
-				type="email"
-				name="email"
-				required
-				value={form?.email ?? ''}
-				class="rounded border border-neutral-300 px-3 py-2"
-			/>
-		</label>
-		<label class="flex flex-col gap-1">
-			<span class="text-sm font-medium">Password</span>
-			<input
-				type="password"
-				name="password"
-				required
-				class="rounded border border-neutral-300 px-3 py-2"
-			/>
-		</label>
+		<form method="POST" class="flex flex-col gap-4">
+			<label class="label">
+				<span class="label-text">Email</span>
+				<input type="email" name="email" required value={form?.email ?? ''} class="input" />
+			</label>
+			<label class="label">
+				<span class="label-text">Password</span>
+				<input type="password" name="password" required class="input" />
+			</label>
 
-		{#if form?.error}
-			<p class="text-sm text-red-600" role="alert">{form.error}</p>
-		{/if}
+			{#if form?.error}
+				<p class="text-error-500 text-sm" role="alert">{form.error}</p>
+			{/if}
 
-		<button type="submit" class="rounded bg-neutral-900 px-4 py-2 text-white"> Log in </button>
-	</form>
+			<button type="submit" class="btn preset-filled-primary-500">Verify &amp; Enter</button>
+		</form>
 
-	<p class="text-sm text-neutral-600">
-		Need an account? <a href={resolve('/signup')} class="underline">Sign up</a>
-	</p>
+		<p class="text-surface-600-400 text-sm">
+			Not yet on file? <a href={resolve('/signup')} class="anchor"
+				>Register a whistleblower account</a
+			>
+		</p>
+	</div>
 </main>

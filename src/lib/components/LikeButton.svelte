@@ -37,22 +37,18 @@
 			type="submit"
 			disabled={pending}
 			aria-pressed={optimisticLiked}
-			class="flex items-center gap-2 rounded-full border px-4 py-2 text-sm disabled:opacity-50"
-			class:border-neutral-900={optimisticLiked}
-			class:bg-neutral-900={optimisticLiked}
-			class:text-white={optimisticLiked}
-			class:border-neutral-300={!optimisticLiked}
+			title="Add your name to this record"
+			class="chip disabled:opacity-50 {optimisticLiked
+				? 'preset-filled-primary-500'
+				: 'preset-outlined-surface-400-600 hover:preset-tonal'}"
 		>
-			<span>{optimisticLiked ? '♥' : '♡'}</span>
-			<span>{optimisticCount}</span>
+			<span>{optimisticLiked ? '✒️' : '🖋️'}</span>
+			<span>{optimisticCount} co-signed</span>
 		</button>
 	</form>
 {:else}
-	<a
-		href={resolve('/login')}
-		class="flex items-center gap-2 rounded-full border border-neutral-300 px-4 py-2 text-sm"
-	>
-		<span>♡</span>
-		<span>{likeCount}</span>
+	<a href={resolve('/login')} class="chip preset-outlined-surface-400-600 hover:preset-tonal">
+		<span>🖋️</span>
+		<span>{likeCount} co-signed</span>
 	</a>
 {/if}
