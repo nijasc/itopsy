@@ -5,6 +5,12 @@
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
+
+	const isOwner = $derived(data.user?.role === 'owner');
+
+	function canEdit(authorId: string) {
+		return isOwner || data.user?.id === authorId;
+	}
 </script>
 
 <svelte:head>
@@ -27,6 +33,7 @@
 			<thead>
 				<tr>
 					<th>Case</th>
+					<th>Author</th>
 					<th>Status</th>
 					<th>Language</th>
 					<th>Severity</th>
@@ -43,6 +50,7 @@
 								{study.title}
 							</a>
 						</td>
+						<td class="text-surface-600-400 text-xs">{study.authorEmail}</td>
 						<td>
 							<span
 								class="badge {study.status === 'published'
@@ -58,52 +66,58 @@
 						<td>{study.commentCount}</td>
 						<td>
 							<div class="flex gap-3 text-sm">
-								<a
-									href={resolve('/admin/studies/[id]/edit', { id: String(study.id) })}
-									class="anchor"
-								>
-									Edit
-								</a>
-								<form
-									method="POST"
-									action="?/setStatus"
-									use:enhance={() => {
-										return async ({ update }) => {
-											await update();
-											toaster.success({
-												title: study.status === 'published' ? 'Case sealed' : 'Case published',
-												description: `"${study.title}" is now ${study.status === 'published' ? 'sealed' : 'public'}.`
-											});
-										};
-									}}
-								>
-									<input type="hidden" name="id" value={study.id} />
-									<input
-										type="hidden"
-										name="status"
-										value={study.status === 'published' ? 'draft' : 'published'}
-									/>
-									<button type="submit" class="text-surface-600-400 hover:underline">
-										{study.status === 'published' ? 'Seal' : 'Publish'}
-									</button>
-								</form>
-								<form
-									method="POST"
-									action="?/delete"
-									use:enhance={({ cancel }) => {
-										if (!confirm(`Permanently destroy the case file "${study.title}"?`)) cancel();
-										return async ({ update }) => {
-											await update();
-											toaster.error({
-												title: 'Case destroyed',
-												description: `"${study.title}" has been shredded.`
-											});
-										};
-									}}
-								>
-									<input type="hidden" name="id" value={study.id} />
-									<button type="submit" class="text-error-500 hover:underline">Destroy</button>
-								</form>
+								{#if canEdit(study.authorId)}
+									<a
+										href={resolve('/admin/studies/[id]/edit', { id: String(study.id) })}
+										class="anchor"
+									>
+										Edit
+									</a>
+									<form
+										method="POST"
+										action="?/setStatus"
+										use:enhance={() => {
+											return async ({ update }) => {
+												await update();
+												toaster.success({
+													title: study.status === 'published' ? 'Case sealed' : 'Case published',
+													description: `"${study.title}" is now ${study.status === 'published' ? 'sealed' : 'public'}.`
+												});
+											};
+										}}
+									>
+										<input type="hidden" name="id" value={study.id} />
+										<input
+											type="hidden"
+											name="status"
+											value={study.status === 'published' ? 'draft' : 'published'}
+										/>
+										<button type="submit" class="text-surface-600-400 hover:underline">
+											{study.status === 'published' ? 'Seal' : 'Publish'}
+										</button>
+									</form>
+								{:else}
+									<span class="text-surface-500 text-xs italic">Not yours</span>
+								{/if}
+								{#if isOwner}
+									<form
+										method="POST"
+										action="?/delete"
+										use:enhance={({ cancel }) => {
+											if (!confirm(`Permanently destroy the case file "${study.title}"?`)) cancel();
+											return async ({ update }) => {
+												await update();
+												toaster.error({
+													title: 'Case destroyed',
+													description: `"${study.title}" has been shredded.`
+												});
+											};
+										}}
+									>
+										<input type="hidden" name="id" value={study.id} />
+										<button type="submit" class="text-error-500 hover:underline">Destroy</button>
+									</form>
+								{/if}
 							</div>
 						</td>
 					</tr>
@@ -111,4 +125,27 @@
 			</tbody>
 		</table>
 	</div>
+
+	{#if data.totalPages > 1}
+		<div class="flex items-center justify-center gap-3 text-sm">
+			<!-- Same-page pagination; a dynamic query string can't match resolve()'s literal route union. -->
+			<!-- eslint-disable svelte/no-navigation-without-resolve -->
+			<a
+				href={`${resolve('/admin/studies')}?page=${Math.max(1, data.page - 1)}`}
+				class="btn btn-sm preset-tonal {data.page <= 1 ? 'pointer-events-none opacity-40' : ''}"
+			>
+				&larr; Previous
+			</a>
+			<span class="text-surface-600-400">Page {data.page} of {data.totalPages}</span>
+			<a
+				href={`${resolve('/admin/studies')}?page=${Math.min(data.totalPages, data.page + 1)}`}
+				class="btn btn-sm preset-tonal {data.page >= data.totalPages
+					? 'pointer-events-none opacity-40'
+					: ''}"
+			>
+				Next &rarr;
+			</a>
+			<!-- eslint-enable svelte/no-navigation-without-resolve -->
+		</div>
+	{/if}
 </main>

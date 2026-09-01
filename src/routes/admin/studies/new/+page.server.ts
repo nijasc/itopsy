@@ -5,6 +5,7 @@ import { studies } from '$lib/server/db/schema';
 import { studySchema } from '$lib/schemas/study';
 import { generateUniqueSlug } from '$lib/server/slug';
 import { requireRole } from '$lib/server/authz';
+import { logAudit } from '$lib/server/audit';
 
 export const actions: Actions = {
 	default: async ({ request, locals }) => {
@@ -20,6 +21,8 @@ export const actions: Actions = {
 			.insert(studies)
 			.values({ ...parsed.data, slug, authorId: user.id })
 			.returning();
+
+		await logAudit(user, 'study.create', 'study', study.id, `Opened "${study.title}"`);
 
 		redirect(303, `/admin/studies/${study.id}/edit`);
 	}

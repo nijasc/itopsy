@@ -22,7 +22,7 @@ export const studies = pgTable(
 		authorId: t
 			.text('author_id')
 			.notNull()
-			.references(() => users.id),
+			.references(() => users.id, { onDelete: 'cascade' }),
 		likeCount: t.integer('like_count').notNull().default(0),
 		createdAt: t.timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 		updatedAt: t.timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()

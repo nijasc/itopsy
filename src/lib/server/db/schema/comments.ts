@@ -14,7 +14,7 @@ export const comments = pgTable(
 		authorId: t
 			.text('author_id')
 			.notNull()
-			.references(() => users.id),
+			.references(() => users.id, { onDelete: 'cascade' }),
 		parentId: t.integer('parent_id').references((): AnyPgColumn => comments.id, {
 			onDelete: 'cascade'
 		}),

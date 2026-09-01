@@ -4,6 +4,7 @@ import type { Actions, PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
 import { users } from '$lib/server/db/schema';
 import { requireRole } from '$lib/server/authz';
+import { logAudit } from '$lib/server/audit';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	requireRole(locals.user, 'owner');
@@ -16,7 +17,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 export const actions: Actions = {
 	setRole: async ({ request, locals }) => {
-		requireRole(locals.user, 'owner');
+		const owner = requireRole(locals.user, 'owner');
 		const formData = await request.formData();
 		const id = String(formData.get('id') ?? '');
 		const role = formData.get('role');
@@ -33,5 +34,37 @@ export const actions: Actions = {
 		}
 
 		await db.update(users).set({ role }).where(eq(users.id, id));
+		await logAudit(
+			owner,
+			role === 'admin' ? 'user.promote' : 'user.demote',
+			'user',
+			id,
+			`${role === 'admin' ? 'Promoted' : 'Demoted'} ${target.email} to ${role === 'admin' ? 'Staff Investigator' : 'Registered Whistleblower'}`
+		);
+	},
+
+	// Owner-only, and cascades: deleting an account also deletes every study
+	// and comment they authored (ON DELETE CASCADE at the schema level).
+	deleteAccount: async ({ request, locals }) => {
+		const owner = requireRole(locals.user, 'owner');
+		const formData = await request.formData();
+		const id = String(formData.get('id') ?? '');
+		if (!id) return fail(400, { error: 'Invalid request.' });
+		if (id === owner.id) return fail(403, { error: 'You cannot delete your own account.' });
+
+		const [target] = await db.select().from(users).where(eq(users.id, id)).limit(1);
+		if (!target) error(404, 'User not found');
+		if (target.role === 'owner') {
+			return fail(403, { error: 'The owner account cannot be deleted.' });
+		}
+
+		await db.delete(users).where(eq(users.id, id));
+		await logAudit(
+			owner,
+			'user.delete',
+			'user',
+			id,
+			`Deleted account ${target.email} (and everything they authored)`
+		);
 	}
 };
