@@ -24,7 +24,9 @@ studies; the site owner manages admins.
 
 `owner > admin > user > anon`
 
-- The **first person to register** automatically becomes the **owner**.
+- The account whose email matches the `OWNER_EMAIL` environment variable
+  becomes the **owner** when it registers. There is never more than one
+  owner, and without `OWNER_EMAIL` nobody can claim the role via signup.
 - The owner manages admins (promote/demote).
 - Admins author and manage case studies.
 - Registered users can like, comment, and reply.
@@ -35,7 +37,7 @@ studies; the site owner manages admins.
 Each case study's HTML must be rendered inside a **sandboxed iframe**:
 
 ```html
-<iframe sandbox="allow-scripts" srcdoc={studyHtml}></iframe>
+<iframe sandbox="allow-scripts" srcdoc="{studyHtml}"></iframe>
 ```
 
 - Always include `sandbox="allow-scripts"`.

@@ -79,11 +79,13 @@ export const actions: Actions = {
 			if (!Number.isInteger(parentId)) return fail(400, { error: 'Invalid reply target.' });
 			// One level of replies only: replying to a reply attaches to its parent instead.
 			const [parentComment] = await db
-				.select({ parentId: comments.parentId })
+				.select({ parentId: comments.parentId, isDeleted: comments.isDeleted })
 				.from(comments)
 				.where(and(eq(comments.id, parentId), eq(comments.studyId, study.id)))
 				.limit(1);
-			if (!parentComment) return fail(400, { error: 'That comment no longer exists.' });
+			if (!parentComment || parentComment.isDeleted) {
+				return fail(400, { error: 'That comment no longer exists.' });
+			}
 			if (parentComment.parentId !== null) parentId = parentComment.parentId;
 		}
 

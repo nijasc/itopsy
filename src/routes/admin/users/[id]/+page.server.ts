@@ -5,7 +5,7 @@ import { getUserAccount, getUserComments } from '$lib/server/queries/profile';
 import { getStudiesAuthoredBy } from '$lib/server/queries/admin-studies';
 import { requireRole, hasRole } from '$lib/server/authz';
 import { db } from '$lib/server/db';
-import { users } from '$lib/server/db/schema';
+import { comments, studies, users } from '$lib/server/db/schema';
 import { logAudit } from '$lib/server/audit';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
@@ -14,15 +14,15 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	const account = await getUserAccount(params.id);
 	if (!account) error(404, 'Account not found');
 
-	const [authoredStudies, comments] = await Promise.all([
+	const [authoredStudies, userComments] = await Promise.all([
 		getStudiesAuthoredBy(params.id),
-		getUserComments(params.id)
+		getUserComments(params.id, { includeUnpublished: true })
 	]);
 
 	return {
 		account,
 		authoredStudies,
-		comments,
+		comments: userComments,
 		isOwnerViewer: hasRole(locals.user, 'owner')
 	};
 };
@@ -50,6 +50,8 @@ export const actions: Actions = {
 		);
 	},
 
+	// See admin/users/+page.server.ts: studies are reassigned to the owner and
+	// the account's testimony is retracted rather than destroyed.
 	deleteAccount: async ({ locals, params }) => {
 		const owner = requireRole(locals.user, 'owner');
 		if (params.id === owner.id) return fail(403, { error: 'You cannot delete your own account.' });
@@ -60,13 +62,15 @@ export const actions: Actions = {
 			return fail(403, { error: 'The owner account cannot be deleted.' });
 		}
 
+		await db.update(studies).set({ authorId: owner.id }).where(eq(studies.authorId, params.id));
+		await db.update(comments).set({ isDeleted: true }).where(eq(comments.authorId, params.id));
 		await db.delete(users).where(eq(users.id, params.id));
 		await logAudit(
 			owner,
 			'user.delete',
 			'user',
 			params.id,
-			`Deleted account ${target.email} (and everything they authored)`
+			`Deleted account ${target.email} (case files reassigned to the owner, testimony retracted)`
 		);
 
 		redirect(303, '/admin/users');

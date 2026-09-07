@@ -27,6 +27,12 @@ export const actions: Actions = {
 		const [existing] = await db.select().from(studies).where(eq(studies.id, id)).limit(1);
 		if (!existing) return fail(404, { error: 'Study not found.' });
 
+		// Same scope as editing: admins publish or seal only their own cases,
+		// the owner can do it for any of them.
+		if (user.role !== 'owner' && existing.authorId !== user.id) {
+			return fail(403, { error: 'You can only publish or seal cases you opened yourself.' });
+		}
+
 		await db.update(studies).set({ status, updatedAt: new Date() }).where(eq(studies.id, id));
 		await logAudit(
 			user,

@@ -12,6 +12,9 @@ export const users = pgTable(
 		id: t.text('id').primaryKey(),
 		email: t.varchar('email', { length: 256 }).notNull(),
 		passwordHash: t.text('password_hash').notNull(),
+		// Optional public name. When null, public pages show a pseudonym derived
+		// from the id (see $lib/server/display-name) — never the email address.
+		displayName: t.varchar('display_name', { length: 40 }),
 		role: roleEnum('role').notNull().default('user'),
 		createdAt: t.timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 	},

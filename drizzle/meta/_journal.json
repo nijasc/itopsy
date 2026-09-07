@@ -43,6 +43,13 @@
       "when": 1788267860034,
       "tag": "0005_omniscient_nighthawk",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788780867541,
+      "tag": "0006_security_hardening",
+      "breakpoints": true
     }
   ]
 }

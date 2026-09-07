@@ -1,15 +1,21 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { Scrypt, generateIdFromEntropySize } from 'lucia';
 import { NeonDbError } from '@neondatabase/serverless';
+import { env } from '$env/dynamic/private';
 import type { Actions, PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
 import { users } from '$lib/server/db/schema';
-import { lucia } from '$lib/server/auth';
+import { lucia, SESSION_COOKIE_PATH } from '$lib/server/auth';
 import { credentialsSchema } from '$lib/schemas/auth';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (locals.user) redirect(303, '/');
 };
+
+function isUniqueViolation(err: unknown): NeonDbError | null {
+	const cause = err instanceof Error ? (err.cause ?? err) : err;
+	return cause instanceof NeonDbError && cause.code === '23505' ? cause : null;
+}
 
 export const actions: Actions = {
 	default: async ({ request, cookies }) => {
@@ -26,37 +32,42 @@ export const actions: Actions = {
 		const passwordHash = await new Scrypt().hash(password);
 		const userId = generateIdFromEntropySize(10);
 
-		// Attempt the first registration on the site as owner; the partial
-		// unique index (one_owner_idx) rejects a second owner row, and we
-		// fall back to a plain user on that specific conflict. This avoids
-		// a pre-check-then-insert race window.
+		// Owner bootstrap is gated on OWNER_EMAIL: only that address is offered
+		// the owner role, and only while no owner exists. The partial unique
+		// index (one_owner_idx) still guarantees at most one owner row, so two
+		// simultaneous signups with the same address can't both win, and the
+		// loser falls back to a plain user. Without OWNER_EMAIL nobody can claim
+		// the site through the signup form.
+		const ownerEmail = env.OWNER_EMAIL?.trim().toLowerCase();
+		const wantsOwner = Boolean(ownerEmail) && email === ownerEmail;
+
 		try {
-			await db.insert(users).values({ id: userId, email, passwordHash, role: 'owner' });
+			await db
+				.insert(users)
+				.values({ id: userId, email, passwordHash, role: wantsOwner ? 'owner' : 'user' });
 		} catch (err) {
-			const cause = err instanceof Error ? (err.cause ?? err) : err;
-			if (cause instanceof NeonDbError && cause.code === '23505') {
-				if (cause.constraint === 'users_email_idx') {
+			const violation = isUniqueViolation(err);
+			if (!violation) throw err;
+			if (violation.constraint === 'users_email_idx') {
+				return fail(400, { email, error: 'An account with that email already exists.' });
+			}
+			if (!wantsOwner) throw err;
+
+			// one_owner_idx: an owner already exists, so register as a plain user.
+			try {
+				await db.insert(users).values({ id: userId, email, passwordHash, role: 'user' });
+			} catch (retryErr) {
+				if (isUniqueViolation(retryErr)) {
 					return fail(400, { email, error: 'An account with that email already exists.' });
 				}
-				// one_owner_idx (or any other unique violation on this insert): fall back to user
-				try {
-					await db.insert(users).values({ id: userId, email, passwordHash, role: 'user' });
-				} catch (retryErr) {
-					const retryCause = retryErr instanceof Error ? (retryErr.cause ?? retryErr) : retryErr;
-					if (retryCause instanceof NeonDbError && retryCause.code === '23505') {
-						return fail(400, { email, error: 'An account with that email already exists.' });
-					}
-					throw retryErr;
-				}
-			} else {
-				throw err;
+				throw retryErr;
 			}
 		}
 
 		const session = await lucia.createSession(userId, {});
 		const sessionCookie = lucia.createSessionCookie(session.id);
 		cookies.set(sessionCookie.name, sessionCookie.value, {
-			path: '.',
+			path: SESSION_COOKIE_PATH,
 			...sessionCookie.attributes
 		});
 

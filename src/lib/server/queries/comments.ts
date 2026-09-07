@@ -1,12 +1,15 @@
 import { asc, eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { comments, users } from '$lib/server/db/schema';
+import { publicName } from '$lib/server/display-name';
 
 export interface CommentRow {
 	id: number;
 	parentId: number | null;
-	authorId: string;
-	authorEmail: string;
+	/** Null once the author's account has been deleted. */
+	authorId: string | null;
+	/** The author's chosen display name or a stable pseudonym. Never their email. */
+	authorName: string;
 	body: string;
 	createdAt: Date;
 	editedAt: Date | null;
@@ -24,21 +27,27 @@ export async function listStudyComments(studyId: number): Promise<CommentWithRep
 			id: comments.id,
 			parentId: comments.parentId,
 			authorId: comments.authorId,
-			authorEmail: users.email,
+			authorDisplayName: users.displayName,
 			body: comments.body,
 			createdAt: comments.createdAt,
 			editedAt: comments.editedAt,
 			isDeleted: comments.isDeleted
 		})
 		.from(comments)
-		.innerJoin(users, eq(users.id, comments.authorId))
+		.leftJoin(users, eq(users.id, comments.authorId))
 		.where(eq(comments.studyId, studyId))
 		.orderBy(asc(comments.createdAt));
 
 	const repliesByParent = new Map<number, CommentRow[]>();
 	const topLevel: CommentRow[] = [];
 
-	for (const row of rows) {
+	for (const { authorDisplayName, ...rest } of rows) {
+		const row: CommentRow = {
+			...rest,
+			authorName: publicName(
+				rest.authorId ? { id: rest.authorId, displayName: authorDisplayName } : null
+			)
+		};
 		if (row.parentId === null) {
 			topLevel.push(row);
 		} else {

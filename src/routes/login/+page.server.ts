@@ -4,8 +4,15 @@ import { Scrypt } from 'lucia';
 import type { Actions, PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
 import { users } from '$lib/server/db/schema';
-import { lucia } from '$lib/server/auth';
+import { lucia, SESSION_COOKIE_PATH } from '$lib/server/auth';
 import { credentialsSchema } from '$lib/schemas/auth';
+
+const scrypt = new Scrypt();
+
+// Verified against when the email is unknown, so a miss costs the same time
+// as a wrong password and response timing doesn't reveal which emails exist.
+let decoyHash: Promise<string> | undefined;
+const getDecoyHash = () => (decoyHash ??= scrypt.hash('no-such-account'));
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (locals.user) redirect(303, '/');
@@ -25,10 +32,11 @@ export const actions: Actions = {
 
 		const [existingUser] = await db.select().from(users).where(eq(users.email, email)).limit(1);
 		if (!existingUser) {
+			await scrypt.verify(await getDecoyHash(), password);
 			return fail(400, { email, error: 'Incorrect email or password.' });
 		}
 
-		const validPassword = await new Scrypt().verify(existingUser.passwordHash, password);
+		const validPassword = await scrypt.verify(existingUser.passwordHash, password);
 		if (!validPassword) {
 			return fail(400, { email, error: 'Incorrect email or password.' });
 		}
@@ -36,7 +44,7 @@ export const actions: Actions = {
 		const session = await lucia.createSession(existingUser.id, {});
 		const sessionCookie = lucia.createSessionCookie(session.id);
 		cookies.set(sessionCookie.name, sessionCookie.value, {
-			path: '.',
+			path: SESSION_COOKIE_PATH,
 			...sessionCookie.attributes
 		});
 

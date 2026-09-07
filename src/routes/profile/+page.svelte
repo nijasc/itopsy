@@ -4,6 +4,7 @@
 	import { Tabs } from '@skeletonlabs/skeleton-svelte';
 	import { toaster } from '$lib/toaster';
 	import { Icon, thumbsUpIcon, messageSquareIcon } from '$lib/icons';
+	import { DISPLAY_NAME_MAX_LENGTH } from '$lib/schemas/profile';
 	import type { ActionData, PageData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -21,10 +22,17 @@
 	};
 
 	$effect(() => {
-		if (form?.success) {
+		if (form?.passwordChanged) {
 			toaster.success({
 				title: 'Credentials reissued',
-				description: 'Your new password has been notarized. Try not to forget it this time.'
+				description:
+					'Your new password has been notarized and every other session has been shown the door.'
+			});
+		}
+		if (form?.nameUpdated) {
+			toaster.success({
+				title: 'Alias updated',
+				description: 'This is the name the public record will attribute your testimony to.'
 			});
 		}
 	});
@@ -39,12 +47,13 @@
 		<div
 			class="bg-primary-500 text-primary-contrast-500 flex size-16 items-center justify-center rounded-full text-xl font-bold"
 		>
-			{data.account?.email.slice(0, 2).toUpperCase()}
+			{data.publicName?.slice(0, 2).toUpperCase()}
 		</div>
 		<div>
-			<h1 class="text-xl font-semibold">{data.account?.email}</h1>
+			<h1 class="text-xl font-semibold">{data.publicName}</h1>
 			<p class="text-surface-600-400 text-sm">
-				{data.account && roleTitle[data.account.role]} &middot; on file since {data.account?.createdAt.toLocaleDateString()}
+				{data.account?.email} &middot; {data.account && roleTitle[data.account.role]} &middot; on file
+				since {data.account?.createdAt.toLocaleDateString()}
 			</p>
 		</div>
 	</header>
@@ -123,14 +132,45 @@
 		</Tabs.Content>
 
 		<Tabs.Content value="settings">
-			<p class="text-surface-600-400 mt-4 text-sm">
-				Changing your password does not change who you are as a person.
+			<h2 class="mt-4 text-base font-semibold">Public alias</h2>
+			<p class="text-surface-600-400 text-sm">
+				Shown next to your testimony instead of your email, which never leaves the building. Leave
+				it empty to testify as an anonymous witness.
+			</p>
+			<form
+				method="POST"
+				action="?/updateDisplayName"
+				use:enhance
+				class="mt-3 flex max-w-sm flex-col gap-3"
+			>
+				<label class="label">
+					<span class="label-text">Alias</span>
+					<input
+						type="text"
+						name="displayName"
+						value={data.account?.displayName ?? ''}
+						maxlength={DISPLAY_NAME_MAX_LENGTH}
+						placeholder={data.publicName ?? ''}
+						autocomplete="nickname"
+						class="input"
+					/>
+				</label>
+				{#if form?.error && form.form === 'name'}
+					<p class="text-error-500 text-sm" role="alert">{form.error}</p>
+				{/if}
+				<button type="submit" class="btn preset-tonal">Update Alias</button>
+			</form>
+
+			<h2 class="mt-8 text-base font-semibold">Password</h2>
+			<p class="text-surface-600-400 text-sm">
+				Changing your password does not change who you are as a person. It does log out every other
+				device.
 			</p>
 			<form
 				method="POST"
 				action="?/changePassword"
 				use:enhance
-				class="mt-4 flex max-w-sm flex-col gap-4"
+				class="mt-3 flex max-w-sm flex-col gap-3"
 			>
 				<label class="label">
 					<span class="label-text">Current password</span>
@@ -140,7 +180,7 @@
 					<span class="label-text">New password</span>
 					<input type="password" name="newPassword" required minlength="8" class="input" />
 				</label>
-				{#if form?.error}
+				{#if form?.error && form.form === 'password'}
 					<p class="text-error-500 text-sm" role="alert">{form.error}</p>
 				{/if}
 				<button type="submit" class="btn preset-filled-primary-500">Reissue Credentials</button>

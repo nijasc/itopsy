@@ -28,10 +28,6 @@
 		if (!currentUser || currentUser.id !== comment.authorId) return false;
 		return Date.now() - comment.createdAt.getTime() < COMMENT_EDIT_WINDOW_MS;
 	}
-
-	function displayName(email: string) {
-		return email.split('@')[0];
-	}
 </script>
 
 {#snippet commentItem(comment: CommentRow, isReply: boolean)}
@@ -62,7 +58,7 @@
 			</form>
 		{:else}
 			<div class="text-surface-600-400 flex items-baseline gap-2 text-xs">
-				<span class="text-surface-800-200 font-medium">{displayName(comment.authorEmail)}</span>
+				<span class="text-surface-800-200 font-medium">{comment.authorName}</span>
 				<span>{comment.createdAt.toLocaleDateString()}</span>
 				{#if comment.editedAt}<span>(amended)</span>{/if}
 			</div>

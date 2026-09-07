@@ -11,10 +11,10 @@ export const comments = pgTable(
 			.integer('study_id')
 			.notNull()
 			.references(() => studies.id, { onDelete: 'cascade' }),
-		authorId: t
-			.text('author_id')
-			.notNull()
-			.references(() => users.id, { onDelete: 'cascade' }),
+		// SET NULL rather than CASCADE: deleting an account must not take other
+		// people's replies down with it. The account's own comments are
+		// soft-deleted by the delete-account action before the row goes.
+		authorId: t.text('author_id').references(() => users.id, { onDelete: 'set null' }),
 		parentId: t.integer('parent_id').references((): AnyPgColumn => comments.id, {
 			onDelete: 'cascade'
 		}),

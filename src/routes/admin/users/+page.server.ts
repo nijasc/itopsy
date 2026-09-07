@@ -2,7 +2,7 @@ import { desc, eq } from 'drizzle-orm';
 import { error, fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
-import { users } from '$lib/server/db/schema';
+import { comments, studies, users } from '$lib/server/db/schema';
 import { requireRole } from '$lib/server/authz';
 import { logAudit } from '$lib/server/audit';
 
@@ -43,8 +43,10 @@ export const actions: Actions = {
 		);
 	},
 
-	// Owner-only, and cascades: deleting an account also deletes every study
-	// and comment they authored (ON DELETE CASCADE at the schema level).
+	// Owner-only. Deleting an account must not destroy published content or
+	// other people's replies: the account's studies are reassigned to the
+	// owner, its own testimony is retracted (soft-deleted), and the comment
+	// rows are detached from the user by the ON DELETE SET NULL foreign key.
 	deleteAccount: async ({ request, locals }) => {
 		const owner = requireRole(locals.user, 'owner');
 		const formData = await request.formData();
@@ -58,13 +60,15 @@ export const actions: Actions = {
 			return fail(403, { error: 'The owner account cannot be deleted.' });
 		}
 
+		await db.update(studies).set({ authorId: owner.id }).where(eq(studies.authorId, id));
+		await db.update(comments).set({ isDeleted: true }).where(eq(comments.authorId, id));
 		await db.delete(users).where(eq(users.id, id));
 		await logAudit(
 			owner,
 			'user.delete',
 			'user',
 			id,
-			`Deleted account ${target.email} (and everything they authored)`
+			`Deleted account ${target.email} (case files reassigned to the owner, testimony retracted)`
 		);
 	}
 };
