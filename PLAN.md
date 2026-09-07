@@ -76,7 +76,9 @@ here's what I'm picking and why. Push back on any of these before phase
 ## Phase breakdown
 
 ### Phase 1 — DB schema + migrations
+
 Files:
+
 - `src/lib/server/db/schema.ts` — replace placeholder with `users`,
   `sessions`, `studies`, `likes`, `comments` tables, enums
   (`role`, `severity`, `status`), relations via `relations()`.
@@ -92,7 +94,9 @@ Files:
 Commit boundary: **"Add DB schema, migrations, and Postgres triggers/indexes"**
 
 ### Phase 2 — Auth + role logic
+
 Files:
+
 - `src/lib/server/auth.ts` — Lucia setup with the Drizzle adapter,
   session cookie config.
 - `src/hooks.server.ts` — session validation on every request,
@@ -109,7 +113,9 @@ Files:
 Commit boundary: **"Add Lucia session auth, owner-race-safe signup, role helpers"**
 
 ### Phase 3 — Gallery + filtering
+
 Files:
+
 - `src/routes/+page.server.ts` — load: parse URL search params (tags,
   severity, sort, search, page), query published studies only, return
   facet counts for filter UI.
@@ -123,7 +129,9 @@ Files:
 Commit boundary: **"Add gallery with filter/sort/search"**
 
 ### Phase 4 — Study detail + sandboxed rendering
+
 Files:
+
 - `src/routes/study/[slug]/+page.server.ts` — load study by slug;
   draft → 404 unless admin+/author; increment view count if you want
   one (not in spec — skipping unless you want it).
@@ -137,7 +145,9 @@ Files:
 Commit boundary: **"Add study detail page with sandboxed iframe render"**
 
 ### Phase 5 — Likes + comments
+
 Files:
+
 - `src/routes/study/[slug]/+page.server.ts` — add `like`, `comment`,
   `deleteComment`, `editComment` form actions, each starting with a
   role check (`requireRole(locals, 'user')` for like/comment; author-
@@ -155,7 +165,9 @@ Files:
 Commit boundary: **"Add likes and one-level-deep threaded comments"**
 
 ### Phase 6 — Admin CRUD + editor
+
 Files:
+
 - `src/routes/admin/+layout.server.ts` — `requireRole(locals, 'admin')`
   guard for the whole `/admin` subtree.
 - `src/routes/admin/studies/+page.server.ts`, `+page.svelte` — table
@@ -176,7 +188,9 @@ Files:
 Commit boundary: **"Add admin study CRUD with CodeMirror editor + live preview"**
 
 ### Phase 7 — Admin user management (owner only)
+
 Files:
+
 - `src/routes/admin/users/+page.server.ts` — `requireRole(locals, 'owner')`,
   list users, promote/demote actions with the owner-demotion guard
   from decision #9.
@@ -185,6 +199,7 @@ Files:
 Commit boundary: **"Add owner-only admin promotion/demotion page"**
 
 ### Phase 8 — Polish / a11y / responsive
+
 - Empty states (no studies match filters, no comments yet).
 - Focus management or animation on the iframe load skeleton.
 - Keyboard navigation for filter pills, comment forms.
@@ -216,7 +231,7 @@ Commit boundary: **"Polish pass: empty states, responsive layout, a11y"**
   actually denied by the browser, not just by convention.
 
 - **Owner race condition** — the partial unique index handles the DB
-  level, but the *insert-then-catch-and-retry* code path needs testing
+  level, but the _insert-then-catch-and-retry_ code path needs testing
   under actual concurrency, not just read as correct. Verify by firing
   two concurrent signup requests (e.g. two `Promise.all` fetches
   against a fresh dev DB, or a small script issuing simultaneous HTTP

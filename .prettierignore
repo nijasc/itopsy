@@ -7,3 +7,10 @@ bun.lockb
 
 # Miscellaneous
 /static/
+
+# Generated
+drizzle/meta/
+skills-lock.json
+
+# Third-party skill docs, not project code
+.claude/
